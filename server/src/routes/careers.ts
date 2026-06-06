@@ -4,30 +4,9 @@ import { prisma } from "../db.js";
 import { CALENDAR } from "../data/f126.js";
 import { pointsFor } from "../points.js";
 import { computeStandings } from "../standings.js";
+import { uniqueSlug } from "../slug.js";
 
 export const careersRouter = Router();
-
-// Build a URL-safe slug from a career name, guaranteed unique by suffixing.
-function slugify(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "career"
-  );
-}
-
-async function uniqueSlug(name: string): Promise<string> {
-  const base = slugify(name);
-  let slug = base;
-  let n = 2;
-  while (await prisma.career.findUnique({ where: { slug } })) {
-    slug = `${base}-${n++}`;
-  }
-  return slug;
-}
 
 // --- validation schemas -----------------------------------------------------
 
