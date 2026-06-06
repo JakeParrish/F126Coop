@@ -49,7 +49,7 @@ export default function DriverPage() {
   const color = entrant.team.color;
   const [first, ...rest] = entrant.name.split(" ");
   const last = rest.join(" ");
-  const nat = nationalityIso(entrant.code);
+  const nat = entrant.isPlayer ? entrant.nationality : nationalityIso(entrant.code);
 
   // Season award tallies (non-scoring).
   const awards = {

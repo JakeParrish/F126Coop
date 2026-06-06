@@ -19,6 +19,7 @@ const entrantInput = z.object({
   isPlayer: z.boolean().default(false),
   replacedDriver: z.string().max(40).nullable().optional(),
   imageUrl: z.string().max(500).nullable().optional(),
+  nationality: z.string().max(2).nullable().optional(),
 });
 
 const createCareerInput = z.object({
@@ -58,6 +59,7 @@ const editEntrantInput = z.object({
   isPlayer: z.boolean().optional(),
   imageUrl: z.string().max(500).nullable().optional(),
   replacedDriver: z.string().max(40).nullable().optional(),
+  nationality: z.string().max(2).nullable().optional(),
 });
 
 // --- routes -----------------------------------------------------------------
@@ -123,6 +125,7 @@ careersRouter.post("/careers", requireAuth, async (req, res) => {
           isPlayer: e.isPlayer,
           replacedDriver: e.replacedDriver ?? null,
           imageUrl: e.imageUrl ?? null,
+          nationality: e.nationality ?? null,
           order: i,
         })),
       },
@@ -318,6 +321,7 @@ careersRouter.patch("/careers/:id/entrants/:entrantId", requireAuth, async (req,
     isPlayer?: boolean;
     imageUrl?: string | null;
     replacedDriver?: string | null;
+    nationality?: string | null;
   } = {
     ...parsed.data,
     code: parsed.data.code ? parsed.data.code.toUpperCase() : undefined,
@@ -332,6 +336,7 @@ careersRouter.patch("/careers/:id/entrants/:entrantId", requireAuth, async (req,
       changes.number = original.number;
       changes.imageUrl = original.imageUrl;
       changes.replacedDriver = null;
+      changes.nationality = null;
     }
   }
 

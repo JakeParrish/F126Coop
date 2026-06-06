@@ -3,6 +3,7 @@ import { api, type CareerDetail, type ClaimUser, type Entrant, type Team } from 
 import Avatar from "./Avatar";
 import TeamLogo from "./TeamLogo";
 import { useAuth } from "../auth";
+import { COUNTRIES } from "../lib/ui";
 
 interface Row {
   name: string;
@@ -10,6 +11,7 @@ interface Row {
   number: number;
   imageUrl: string | null;
   isPlayer: boolean;
+  nationality: string | null;
 }
 
 // Edit the seats of an existing career: rename, renumber, set a photo, or mark
@@ -39,7 +41,14 @@ export default function RosterEditor({
     Object.fromEntries(
       career.entrants.map((e) => [
         e.id,
-        { name: e.name, code: e.code, number: e.number, imageUrl: e.imageUrl, isPlayer: e.isPlayer },
+        {
+          name: e.name,
+          code: e.code,
+          number: e.number,
+          imageUrl: e.imageUrl,
+          isPlayer: e.isPlayer,
+          nationality: e.nationality,
+        },
       ])
     )
   );
@@ -71,6 +80,7 @@ export default function RosterEditor({
         number: r.number,
         imageUrl: r.imageUrl && r.imageUrl.trim() ? r.imageUrl.trim() : null,
         isPlayer: r.isPlayer,
+        nationality: r.isPlayer ? r.nationality || "us" : null,
       });
       // Sync the row from the server response (e.g. a reverted player is
       // restored to the original driver's name/code/number/photo).
@@ -82,6 +92,7 @@ export default function RosterEditor({
           number: entrant.number,
           imageUrl: entrant.imageUrl,
           isPlayer: entrant.isPlayer,
+          nationality: entrant.nationality,
         },
       }));
       setSavedId(id);
@@ -171,12 +182,25 @@ export default function RosterEditor({
                     onChange={(ev) => set(id, { number: Number(ev.target.value) })}
                   />
                   {r.isPlayer && (
-                    <input
-                      className="input w-full sm:flex-1 sm:min-w-[10rem]"
-                      placeholder="Photo URL (optional)"
-                      value={r.imageUrl ?? ""}
-                      onChange={(ev) => set(id, { imageUrl: ev.target.value || null })}
-                    />
+                    <>
+                      <input
+                        className="input w-full sm:flex-1 sm:min-w-[10rem]"
+                        placeholder="Photo URL (optional)"
+                        value={r.imageUrl ?? ""}
+                        onChange={(ev) => set(id, { imageUrl: ev.target.value || null })}
+                      />
+                      <select
+                        className="input w-full sm:w-44"
+                        value={r.nationality ?? "us"}
+                        onChange={(ev) => set(id, { nationality: ev.target.value })}
+                      >
+                        {COUNTRIES.map((c) => (
+                          <option key={c.iso} value={c.iso}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </>
                   )}
                   <label className="text-xs text-zinc-400 flex items-center gap-1.5 cursor-pointer select-none">
                     <input

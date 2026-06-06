@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api, type EntrantInput, type Team } from "../api";
 import Avatar from "../components/Avatar";
 import { useAuth } from "../auth";
+import { COUNTRIES } from "../lib/ui";
 
 // One editable seat on the grid. Starts as the real driver; can become a player.
 interface Seat extends EntrantInput {
@@ -37,6 +38,7 @@ export default function NewCareerPage() {
               isPlayer: false,
               replacedDriver: null,
               imageUrl: d.imageUrl,
+              nationality: null,
               baseName: d.name,
               baseCode: d.code,
               baseNumber: d.number,
@@ -81,6 +83,7 @@ export default function NewCareerPage() {
             code: s.baseCode,
             number: s.baseNumber,
             imageUrl: s.baseImage,
+            nationality: null,
           };
         }
         return {
@@ -90,6 +93,7 @@ export default function NewCareerPage() {
           name: "",
           code: "",
           imageUrl: null,
+          nationality: "us",
         };
       })
     );
@@ -116,6 +120,7 @@ export default function NewCareerPage() {
         isPlayer: s.isPlayer,
         replacedDriver: s.isPlayer ? s.replacedDriver : null,
         imageUrl: s.imageUrl && s.imageUrl.trim() ? s.imageUrl.trim() : null,
+        nationality: s.isPlayer ? s.nationality || "us" : null,
       }));
       const { id, slug } = await api.createCareer({ name: name.trim(), entrants });
       nav(`/career/${slug ?? id}`);
@@ -215,11 +220,22 @@ export default function NewCareerPage() {
                           onChange={(e) => update(i, { number: Number(e.target.value) })}
                         />
                         <input
-                          className="input w-full"
+                          className="input w-full sm:flex-1 sm:min-w-[8rem]"
                           placeholder="Photo URL (optional)"
                           value={s.imageUrl ?? ""}
                           onChange={(e) => update(i, { imageUrl: e.target.value || null })}
                         />
+                        <select
+                          className="input w-full sm:w-44"
+                          value={s.nationality ?? "us"}
+                          onChange={(e) => update(i, { nationality: e.target.value })}
+                        >
+                          {COUNTRIES.map((c) => (
+                            <option key={c.iso} value={c.iso}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
                         <span className="text-xs w-full sm:w-auto">
                           {dupNumbers.has(s.number) ? (
                             <span className="text-f1-red">

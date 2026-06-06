@@ -44,6 +44,57 @@ export function driverKey(name: string): string {
   return name.replace(/[^a-zA-Z0-9]/g, "");
 }
 
+// Countries selectable for a custom driver's nationality (ISO alpha-2 + name).
+export const COUNTRIES: { iso: string; name: string }[] = [
+  { iso: "ar", name: "Argentina" },
+  { iso: "au", name: "Australia" },
+  { iso: "at", name: "Austria" },
+  { iso: "az", name: "Azerbaijan" },
+  { iso: "bh", name: "Bahrain" },
+  { iso: "be", name: "Belgium" },
+  { iso: "br", name: "Brazil" },
+  { iso: "ca", name: "Canada" },
+  { iso: "cn", name: "China" },
+  { iso: "co", name: "Colombia" },
+  { iso: "cz", name: "Czechia" },
+  { iso: "dk", name: "Denmark" },
+  { iso: "ee", name: "Estonia" },
+  { iso: "fi", name: "Finland" },
+  { iso: "fr", name: "France" },
+  { iso: "de", name: "Germany" },
+  { iso: "gr", name: "Greece" },
+  { iso: "hu", name: "Hungary" },
+  { iso: "in", name: "India" },
+  { iso: "id", name: "Indonesia" },
+  { iso: "ie", name: "Ireland" },
+  { iso: "it", name: "Italy" },
+  { iso: "jp", name: "Japan" },
+  { iso: "my", name: "Malaysia" },
+  { iso: "mx", name: "Mexico" },
+  { iso: "mc", name: "Monaco" },
+  { iso: "nl", name: "Netherlands" },
+  { iso: "nz", name: "New Zealand" },
+  { iso: "no", name: "Norway" },
+  { iso: "pl", name: "Poland" },
+  { iso: "pt", name: "Portugal" },
+  { iso: "qa", name: "Qatar" },
+  { iso: "ro", name: "Romania" },
+  { iso: "ru", name: "Russia" },
+  { iso: "sa", name: "Saudi Arabia" },
+  { iso: "sg", name: "Singapore" },
+  { iso: "za", name: "South Africa" },
+  { iso: "es", name: "Spain" },
+  { iso: "se", name: "Sweden" },
+  { iso: "ch", name: "Switzerland" },
+  { iso: "th", name: "Thailand" },
+  { iso: "tr", name: "Turkey" },
+  { iso: "ua", name: "Ukraine" },
+  { iso: "ae", name: "United Arab Emirates" },
+  { iso: "gb", name: "United Kingdom" },
+  { iso: "us", name: "United States" },
+  { iso: "ve", name: "Venezuela" },
+];
+
 // Race weekend range (Fri–Sun) from the stored Sunday date, e.g. "06–08 MAR".
 export function raceDateRange(iso: string | null): string {
   if (!iso) return "";

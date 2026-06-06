@@ -39,6 +39,7 @@ export interface Entrant {
   isPlayer: boolean;
   replacedDriver: string | null;
   imageUrl: string | null;
+  nationality: string | null;
   order: number;
   team: Team;
   claimedById: string | null;
@@ -93,6 +94,7 @@ export interface DriverStanding {
   number: number;
   isPlayer: boolean;
   imageUrl: string | null;
+  nationality: string | null;
   teamId: string;
   teamName: string;
   teamColor: string;
@@ -158,6 +160,7 @@ export interface EntrantInput {
   isPlayer: boolean;
   replacedDriver: string | null;
   imageUrl: string | null;
+  nationality: string | null;
 }
 
 export interface ResultRowInput {
@@ -231,6 +234,7 @@ export const api = {
       isPlayer: boolean;
       imageUrl: string | null;
       replacedDriver: string | null;
+      nationality: string | null;
     }>
   ) =>
     req<{ entrant: Entrant }>(`/api/careers/${careerId}/entrants/${entrantId}`, {

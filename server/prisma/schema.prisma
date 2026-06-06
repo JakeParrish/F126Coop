@@ -91,6 +91,7 @@ model Entrant {
   isPlayer      Boolean  @default(false) // true = custom human player
   replacedDriver String?  // name of the real driver this seat replaced (if any)
   imageUrl      String?  // optional headshot/avatar URL
+  nationality   String?  // ISO country code for a custom driver's flag
   order         Int // display order within the grid
   results       Result[]
 

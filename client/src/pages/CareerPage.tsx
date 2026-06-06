@@ -9,7 +9,6 @@ import RosterEditor from "../components/RosterEditor";
 import Flag from "../components/Flag";
 import { countryIso, driverKey, nationalityIso, raceDateRange } from "../lib/ui";
 import type { DriverStanding } from "../api";
-import { useAuth } from "../auth";
 
 const TABS = ["calendar", "drivers", "constructors", "roster"] as const;
 type Tab = (typeof TABS)[number];
@@ -231,12 +230,11 @@ function DriverStandings({
 
 // F1.com-style driver card: team-colour gradient, name, number, flag, headshot.
 function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: string }) {
-  const { user } = useAuth();
   const color = d.teamColor;
   const [first, ...rest] = d.name.split(" ");
   const last = rest.join(" ");
-  const nat = nationalityIso(d.code);
-  const claimer = d.claimedBy;
+  // Custom drivers use their chosen nationality; real drivers use the code map.
+  const nat = d.isPlayer ? d.nationality : nationalityIso(d.code);
 
   return (
     <Link
@@ -261,16 +259,10 @@ function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: 
           <div className="text-[11px] opacity-90 mt-0.5">{d.teamName}</div>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-2xl font-extrabold italic">{d.number}</span>
-            {claimer ? (
-              <img
-                src={claimer.avatarUrl}
-                title={`Claimed by ${claimer.name}`}
-                className={`h-5 w-5 rounded-full border ${
-                  claimer.id === user?.id ? "border-f1-red" : "border-white/50"
-                }`}
-              />
-            ) : nat ? (
+            {nat ? (
               <Flag iso={nat} className="h-4" />
+            ) : d.isPlayer ? (
+              <Avatar name={d.name} code={d.code} teamColor={color} imageUrl={d.imageUrl} size={20} />
             ) : null}
           </div>
         </div>

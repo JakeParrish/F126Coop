@@ -8,6 +8,7 @@ export interface DriverStanding {
   number: number;
   isPlayer: boolean;
   imageUrl: string | null;
+  nationality: string | null;
   teamId: string;
   teamName: string;
   teamColor: string;
@@ -56,6 +57,7 @@ export async function computeStandings(careerId: string) {
       number: e.number,
       isPlayer: e.isPlayer,
       imageUrl: e.imageUrl,
+      nationality: e.nationality,
       teamId: e.teamId,
       teamName: e.team.name,
       teamColor: e.team.color,
