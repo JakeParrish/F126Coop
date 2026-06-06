@@ -38,6 +38,7 @@ const entrantInput = z.object({
   number: z.number().int().min(0).max(999),
   isPlayer: z.boolean().default(false),
   replacedDriver: z.string().max(40).nullable().optional(),
+  imageUrl: z.string().max(500).nullable().optional(),
 });
 
 const createCareerInput = z.object({
@@ -63,6 +64,11 @@ const editRaceInput = z.object({
   circuit: z.string().max(80).nullable().optional(),
   date: z.string().max(20).nullable().optional(),
   isSprint: z.boolean().optional(),
+  // Fun, non-scoring awards — each holds an entrant id (or null to clear).
+  driverOfDayId: z.string().nullable().optional(),
+  mostOvertakesId: z.string().nullable().optional(),
+  cleanestId: z.string().nullable().optional(),
+  fastestLapId: z.string().nullable().optional(),
 });
 
 // --- routes -----------------------------------------------------------------
@@ -127,6 +133,7 @@ careersRouter.post("/careers", async (req, res) => {
           number: e.number,
           isPlayer: e.isPlayer,
           replacedDriver: e.replacedDriver ?? null,
+          imageUrl: e.imageUrl ?? null,
           order: i,
         })),
       },

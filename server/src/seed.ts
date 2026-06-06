@@ -20,6 +20,7 @@ async function main() {
         name: d.name,
         code: d.code,
         number: d.number,
+        imageUrl: d.image,
         teamId: team.id,
       })),
     });

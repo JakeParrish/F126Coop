@@ -6,8 +6,11 @@ export interface TeamSeed {
   name: string;
   fullName: string;
   color: string;
-  drivers: { name: string; code: string; number: number }[];
+  drivers: { name: string; code: string; number: number; image: string }[];
 }
+
+// Official F1 headshots live in client/public/drivers (served at /drivers/...).
+const HEAD = (file: string) => `/drivers/${file}`;
 
 // 11 teams, 22 drivers — 2026 grid.
 export const TEAMS: TeamSeed[] = [
@@ -16,8 +19,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "McLaren Formula 1 Team",
     color: "#FF8000",
     drivers: [
-      { name: "Lando Norris", code: "NOR", number: 4 },
-      { name: "Oscar Piastri", code: "PIA", number: 81 },
+      { name: "Lando Norris", code: "NOR", number: 4, image: HEAD("2026mclarenlannor01right.avif") },
+      { name: "Oscar Piastri", code: "PIA", number: 81, image: HEAD("2026mclarenoscpia01right.avif") },
     ],
   },
   {
@@ -25,8 +28,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Scuderia Ferrari HP",
     color: "#E8002D",
     drivers: [
-      { name: "Charles Leclerc", code: "LEC", number: 16 },
-      { name: "Lewis Hamilton", code: "HAM", number: 44 },
+      { name: "Charles Leclerc", code: "LEC", number: 16, image: HEAD("2026ferrarichalec01right.avif") },
+      { name: "Lewis Hamilton", code: "HAM", number: 44, image: HEAD("2026ferrarilewham01right.avif") },
     ],
   },
   {
@@ -34,8 +37,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Mercedes-AMG Petronas F1 Team",
     color: "#27F4D2",
     drivers: [
-      { name: "George Russell", code: "RUS", number: 63 },
-      { name: "Kimi Antonelli", code: "ANT", number: 12 },
+      { name: "George Russell", code: "RUS", number: 63, image: HEAD("2026mercedesgeorus01right.avif") },
+      { name: "Kimi Antonelli", code: "ANT", number: 12, image: HEAD("2026mercedesandant01right.avif") },
     ],
   },
   {
@@ -43,8 +46,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Oracle Red Bull Racing",
     color: "#3671C6",
     drivers: [
-      { name: "Max Verstappen", code: "VER", number: 1 },
-      { name: "Isack Hadjar", code: "HAD", number: 6 },
+      { name: "Max Verstappen", code: "VER", number: 1, image: HEAD("2026redbullracingmaxver01right.avif") },
+      { name: "Isack Hadjar", code: "HAD", number: 6, image: HEAD("2026redbullracingisahad01right.avif") },
     ],
   },
   {
@@ -52,8 +55,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Williams Racing",
     color: "#64C4FF",
     drivers: [
-      { name: "Carlos Sainz", code: "SAI", number: 55 },
-      { name: "Alex Albon", code: "ALB", number: 23 },
+      { name: "Carlos Sainz", code: "SAI", number: 55, image: HEAD("2026williamscarsai01right.avif") },
+      { name: "Alex Albon", code: "ALB", number: 23, image: HEAD("2026williamsalealb01right.avif") },
     ],
   },
   {
@@ -61,8 +64,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Visa Cash App Racing Bulls",
     color: "#6692FF",
     drivers: [
-      { name: "Liam Lawson", code: "LAW", number: 30 },
-      { name: "Arvid Lindblad", code: "LIN", number: 37 },
+      { name: "Liam Lawson", code: "LAW", number: 30, image: HEAD("2026racingbullslialaw01right.avif") },
+      { name: "Arvid Lindblad", code: "LIN", number: 37, image: HEAD("2026racingbullsarvlin01right.avif") },
     ],
   },
   {
@@ -70,8 +73,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Aston Martin Aramco F1 Team",
     color: "#229971",
     drivers: [
-      { name: "Fernando Alonso", code: "ALO", number: 14 },
-      { name: "Lance Stroll", code: "STR", number: 18 },
+      { name: "Fernando Alonso", code: "ALO", number: 14, image: HEAD("2026astonmartinferalo01right.avif") },
+      { name: "Lance Stroll", code: "STR", number: 18, image: HEAD("2026astonmartinlanstr01right.avif") },
     ],
   },
   {
@@ -79,8 +82,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "MoneyGram Haas F1 Team",
     color: "#B6BABD",
     drivers: [
-      { name: "Esteban Ocon", code: "OCO", number: 31 },
-      { name: "Oliver Bearman", code: "BEA", number: 87 },
+      { name: "Esteban Ocon", code: "OCO", number: 31, image: HEAD("2026haasestoco01right.avif") },
+      { name: "Oliver Bearman", code: "BEA", number: 87, image: HEAD("2026haasolibea01right.avif") },
     ],
   },
   {
@@ -88,8 +91,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Audi F1 Team",
     color: "#00788B",
     drivers: [
-      { name: "Nico Hulkenberg", code: "HUL", number: 27 },
-      { name: "Gabriel Bortoleto", code: "BOR", number: 5 },
+      { name: "Nico Hulkenberg", code: "HUL", number: 27, image: HEAD("2026audinichul01right.avif") },
+      { name: "Gabriel Bortoleto", code: "BOR", number: 5, image: HEAD("2026audigabbor01right.avif") },
     ],
   },
   {
@@ -97,8 +100,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "BWT Alpine F1 Team",
     color: "#0093CC",
     drivers: [
-      { name: "Pierre Gasly", code: "GAS", number: 10 },
-      { name: "Franco Colapinto", code: "COL", number: 43 },
+      { name: "Pierre Gasly", code: "GAS", number: 10, image: HEAD("2026alpinepiegas01right.avif") },
+      { name: "Franco Colapinto", code: "COL", number: 43, image: HEAD("2026alpinefracol01right.avif") },
     ],
   },
   {
@@ -106,8 +109,8 @@ export const TEAMS: TeamSeed[] = [
     fullName: "Cadillac F1 Team",
     color: "#C8102E",
     drivers: [
-      { name: "Sergio Perez", code: "PER", number: 11 },
-      { name: "Valtteri Bottas", code: "BOT", number: 77 },
+      { name: "Sergio Perez", code: "PER", number: 11, image: HEAD("2026cadillacserper01right.avif") },
+      { name: "Valtteri Bottas", code: "BOT", number: 77, image: HEAD("2026cadillacvalbot01right.avif") },
     ],
   },
 ];

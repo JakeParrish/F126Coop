@@ -39,12 +39,13 @@ model Team {
 }
 
 model Driver {
-  id     String @id @default(cuid())
-  name   String
-  code   String // 3-letter abbreviation, e.g. "LEC"
-  number Int // permanent car number
-  teamId String
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id       String  @id @default(cuid())
+  name     String
+  code     String // 3-letter abbreviation, e.g. "LEC"
+  number   Int // permanent car number
+  imageUrl String? // optional headshot URL
+  teamId   String
+  team     Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId])
 }
@@ -77,6 +78,7 @@ model Entrant {
   number        Int
   isPlayer      Boolean  @default(false) // true = custom human player
   replacedDriver String?  // name of the real driver this seat replaced (if any)
+  imageUrl      String?  // optional headshot/avatar URL
   order         Int // display order within the grid
   results       Result[]
 

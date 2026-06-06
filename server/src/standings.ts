@@ -6,6 +6,7 @@ export interface DriverStanding {
   code: string;
   number: number;
   isPlayer: boolean;
+  imageUrl: string | null;
   teamId: string;
   teamName: string;
   teamColor: string;
@@ -51,6 +52,7 @@ export async function computeStandings(careerId: string) {
       code: e.code,
       number: e.number,
       isPlayer: e.isPlayer,
+      imageUrl: e.imageUrl,
       teamId: e.teamId,
       teamName: e.team.name,
       teamColor: e.team.color,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, type Entrant, type Race, type Session, type ResultRowInput } from "../api";
+import Avatar from "./Avatar";
 
 const RACE_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 const SPRINT_POINTS = [8, 7, 6, 5, 4, 3, 2, 1];
@@ -146,9 +147,12 @@ export default function SessionEntry({
                   />
                 </span>
                 <span className="flex-1 flex items-center gap-2">
-                  <span
-                    className="inline-block w-1 h-4 rounded-sm"
-                    style={{ background: e.team.color }}
+                  <Avatar
+                    name={e.name}
+                    code={e.code}
+                    teamColor={e.team.color}
+                    imageUrl={e.imageUrl}
+                    size={26}
                   />
                   <span className="font-medium">{e.name}</span>
                   <span className="font-mono text-xs text-zinc-500">{e.code}</span>

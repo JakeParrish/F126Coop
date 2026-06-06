@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type EntrantInput, type Team } from "../api";
+import Avatar from "../components/Avatar";
 
 // One editable seat on the grid. Starts as the real driver; can become a player.
 interface Seat extends EntrantInput {
   baseName: string; // the real driver originally in this seat
   baseCode: string;
   baseNumber: number;
+  baseImage: string | null;
 }
 
 export default function NewCareerPage() {
@@ -32,9 +34,11 @@ export default function NewCareerPage() {
               number: d.number,
               isPlayer: false,
               replacedDriver: null,
+              imageUrl: d.imageUrl,
               baseName: d.name,
               baseCode: d.code,
               baseNumber: d.number,
+              baseImage: d.imageUrl,
             });
           }
         }
@@ -74,6 +78,7 @@ export default function NewCareerPage() {
             name: s.baseName,
             code: s.baseCode,
             number: s.baseNumber,
+            imageUrl: s.baseImage,
           };
         }
         return {
@@ -82,6 +87,7 @@ export default function NewCareerPage() {
           replacedDriver: s.baseName,
           name: "",
           code: "",
+          imageUrl: null,
         };
       })
     );
@@ -107,6 +113,7 @@ export default function NewCareerPage() {
         number: s.number,
         isPlayer: s.isPlayer,
         replacedDriver: s.isPlayer ? s.replacedDriver : null,
+        imageUrl: s.imageUrl && s.imageUrl.trim() ? s.imageUrl.trim() : null,
       }));
       const { id, slug } = await api.createCareer({ name: name.trim(), entrants });
       nav(`/career/${slug ?? id}`);
@@ -162,9 +169,13 @@ export default function NewCareerPage() {
                 const s = seats[i];
                 return (
                   <div key={i} className="px-4 py-3 flex flex-wrap items-center gap-2">
-                    <span className="w-8 text-center text-sm font-mono text-zinc-500">
-                      #{s.number}
-                    </span>
+                    <Avatar
+                      name={s.name || s.code || "?"}
+                      code={s.code || "?"}
+                      teamColor={team.color}
+                      imageUrl={s.imageUrl}
+                      size={34}
+                    />
                     {s.isPlayer ? (
                       <>
                         <input
@@ -188,6 +199,12 @@ export default function NewCareerPage() {
                           value={s.number}
                           onChange={(e) => update(i, { number: Number(e.target.value) })}
                         />
+                        <input
+                          className="input w-full"
+                          placeholder="Photo URL (optional)"
+                          value={s.imageUrl ?? ""}
+                          onChange={(e) => update(i, { imageUrl: e.target.value || null })}
+                        />
                         <span className="text-xs w-full sm:w-auto">
                           {dupNumbers.has(s.number) ? (
                             <span className="text-f1-red">
@@ -199,9 +216,10 @@ export default function NewCareerPage() {
                         </span>
                       </>
                     ) : (
-                      <span className="flex-1 font-medium">
+                      <span className="flex-1 font-medium flex items-center gap-2">
+                        <span className="w-8 text-sm font-mono text-zinc-500">#{s.number}</span>
                         {s.name}
-                        <span className="text-zinc-500 font-mono text-xs ml-2">{s.code}</span>
+                        <span className="text-zinc-500 font-mono text-xs">{s.code}</span>
                       </span>
                     )}
                     <button

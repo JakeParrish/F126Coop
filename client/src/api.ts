@@ -8,6 +8,7 @@ export interface Driver {
   name: string;
   code: string;
   number: number;
+  imageUrl: string | null;
   teamId: string;
 }
 
@@ -29,6 +30,7 @@ export interface Entrant {
   number: number;
   isPlayer: boolean;
   replacedDriver: string | null;
+  imageUrl: string | null;
   order: number;
   team: Team;
 }
@@ -54,7 +56,14 @@ export interface Race {
   isSprint: boolean;
   status: RaceStatus;
   results: Result[];
+  driverOfDayId: string | null;
+  mostOvertakesId: string | null;
+  cleanestId: string | null;
+  fastestLapId: string | null;
 }
+
+// Keys of the four non-scoring race awards.
+export type AwardKey = "driverOfDayId" | "mostOvertakesId" | "cleanestId" | "fastestLapId";
 
 export interface Career {
   id: string;
@@ -73,6 +82,7 @@ export interface DriverStanding {
   code: string;
   number: number;
   isPlayer: boolean;
+  imageUrl: string | null;
   teamId: string;
   teamName: string;
   teamColor: string;
@@ -136,6 +146,7 @@ export interface EntrantInput {
   number: number;
   isPlayer: boolean;
   replacedDriver: string | null;
+  imageUrl: string | null;
 }
 
 export interface ResultRowInput {
@@ -165,7 +176,20 @@ export const api = {
   editRace: (
     careerId: string,
     raceId: string,
-    data: Partial<Pick<Race, "name" | "country" | "circuit" | "date" | "isSprint">>
+    data: Partial<
+      Pick<
+        Race,
+        | "name"
+        | "country"
+        | "circuit"
+        | "date"
+        | "isSprint"
+        | "driverOfDayId"
+        | "mostOvertakesId"
+        | "cleanestId"
+        | "fastestLapId"
+      >
+    >
   ) =>
     req<{ race: Race }>(`/api/careers/${careerId}/races/${raceId}`, {
       method: "PATCH",
