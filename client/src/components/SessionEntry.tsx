@@ -73,11 +73,12 @@ export default function SessionEntry({
 
   const hasDup = dupPositions.size > 0;
 
-  // Display order: classified finishers 1..N, then unfilled (grid order),
-  // then DNFs at the bottom.
+  // Display order, frozen to the SAVED state (not live edits) so rows don't
+  // jump around while you're typing/clicking: classified 1..N, then unfilled
+  // (grid order), then DNFs at the bottom. Re-sorts only after a save.
   const orderedEntrants = useMemo(() => {
     const sortKey = (e: Entrant, i: number) => {
-      const r = rows[e.id];
+      const r = initial[e.id];
       if (r?.dnf) return 200000 + i;
       if (r?.position) return Number(r.position);
       return 100000 + i;
@@ -86,7 +87,7 @@ export default function SessionEntry({
       .map((e, i) => ({ e, i }))
       .sort((a, b) => sortKey(a.e, a.i) - sortKey(b.e, b.i))
       .map((x) => x.e);
-  }, [entrants, rows]);
+  }, [entrants, initial]);
 
   async function save(thenDone: boolean) {
     setError(null);
@@ -194,6 +195,11 @@ export default function SessionEntry({
 
       {error && <p className="text-f1-red text-sm mt-3">{error}</p>}
       {msg && <p className="text-green-400 text-sm mt-3">{msg}</p>}
+      {hasDup && (
+        <p className="text-f1-red text-sm mt-3">
+          Two or more drivers share a finishing position — fix the highlighted positions to save.
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <button className="btn-ghost" onClick={clear} disabled={saving}>
