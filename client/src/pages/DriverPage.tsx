@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type CareerDetail, type Entrant } from "../api";
+import { api, type CareerDetail, type Entrant, type ClaimUser } from "../api";
 import { useAuth } from "../auth";
 import TeamLogo from "../components/TeamLogo";
 import DriverPortrait from "../components/DriverPortrait";
@@ -181,6 +181,17 @@ function ClaimBar({
   const { user, enabled, login } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<ClaimUser[]>([]);
+
+  // Admins can assign the seat to any logged-in user.
+  useEffect(() => {
+    if (user?.isAdmin) {
+      api
+        .listUsers()
+        .then((r) => setUsers(r.users))
+        .catch(() => {});
+    }
+  }, [user?.isAdmin]);
 
   if (!enabled) return null;
 
@@ -207,7 +218,8 @@ function ClaimBar({
           <>
             <img src={claimer.avatarUrl} alt={claimer.name} className="w-6 h-6 rounded-full" />
             <span>
-              Claimed by <span className="font-semibold">{claimer.name}</span>
+              {user?.isAdmin ? "Assigned to" : "Claimed by"}{" "}
+              <span className="font-semibold">{claimer.name}</span>
               {mine && " (you)"}
             </span>
           </>
@@ -221,6 +233,20 @@ function ClaimBar({
           <button onClick={login} className="btn text-xs text-white" style={{ background: "#5865F2" }}>
             Log in to claim
           </button>
+        ) : user.isAdmin ? (
+          <select
+            className="input text-xs"
+            disabled={busy}
+            value={claimer?.id ?? ""}
+            onChange={(e) => act(() => api.assignDriver(careerId, entrant.id, e.target.value || null))}
+          >
+            <option value="">— unassigned —</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
         ) : !claimer ? (
           <button onClick={() => act(() => api.claimDriver(careerId, entrant.id))} disabled={busy} className="btn-primary text-xs">
             {busy ? "…" : "Claim this driver"}
@@ -229,11 +255,9 @@ function ClaimBar({
           <button onClick={() => act(() => api.unclaimDriver(careerId, entrant.id))} disabled={busy} className="btn-ghost text-xs">
             Unclaim
           </button>
-        ) : user.isAdmin ? (
-          <button onClick={() => act(() => api.unclaimDriver(careerId, entrant.id))} disabled={busy} className="btn-ghost text-xs">
-            Unclaim (admin)
-          </button>
-        ) : null}
+        ) : (
+          <span className="text-xs text-zinc-500">Claimed by someone else</span>
+        )}
       </div>
     </div>
   );

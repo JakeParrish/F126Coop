@@ -2,6 +2,9 @@ import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "./auth";
 
 export default function App() {
+  const { user, enabled } = useAuth();
+  // When Discord login is configured, creating/editing requires being logged in.
+  const canEdit = !enabled || !!user;
   return (
     <div className="min-h-full flex flex-col">
       <header className="border-b border-f1-line sticky top-0 z-20 bg-f1-dark/90 backdrop-blur">
@@ -14,9 +17,11 @@ export default function App() {
             <span className="text-xs font-medium text-zinc-500 ml-1">2026</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/new" className="btn-primary text-xs">
-              + New Career
-            </Link>
+            {canEdit && (
+              <Link to="/new" className="btn-primary text-xs">
+                + New Career
+              </Link>
+            )}
             <AuthControls />
           </div>
         </div>

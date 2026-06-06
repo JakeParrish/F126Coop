@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type CareerSummary } from "../api";
+import { useAuth } from "../auth";
 
 export default function HomePage() {
+  const { user, enabled } = useAuth();
+  const canEdit = !enabled || !!user;
   const [careers, setCareers] = useState<CareerSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,9 +35,11 @@ export default function HomePage() {
           <h1 className="text-2xl font-extrabold">Careers</h1>
           <p className="text-zinc-500 text-sm">Pick up a co-op season or start a new one.</p>
         </div>
-        <Link to="/new" className="btn-primary">
-          + New Career
-        </Link>
+        {canEdit && (
+          <Link to="/new" className="btn-primary">
+            + New Career
+          </Link>
+        )}
       </div>
 
       {error && <p className="text-f1-red text-sm mb-4">{error}</p>}
@@ -44,9 +49,13 @@ export default function HomePage() {
       ) : careers.length === 0 ? (
         <div className="panel p-10 text-center">
           <p className="text-zinc-400 mb-4">No careers yet.</p>
-          <Link to="/new" className="btn-primary">
-            Start your first career
-          </Link>
+          {canEdit ? (
+            <Link to="/new" className="btn-primary">
+              Start your first career
+            </Link>
+          ) : (
+            <p className="text-zinc-500 text-sm">Log in with Discord to create one.</p>
+          )}
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -71,12 +80,14 @@ export default function HomePage() {
                   <span className="text-xs text-zinc-500">
                     {c.completedRaces}/{c.totalRaces} races done
                   </span>
-                  <button
-                    onClick={() => remove(c.id, c.name)}
-                    className="text-xs text-zinc-500 hover:text-f1-red"
-                  >
-                    Delete
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={() => remove(c.id, c.name)}
+                      className="text-xs text-zinc-500 hover:text-f1-red"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

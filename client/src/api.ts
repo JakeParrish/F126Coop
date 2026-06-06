@@ -174,6 +174,12 @@ export const api = {
     req<{ ok: true }>(`/api/careers/${careerId}/entrants/${entrantId}/claim`, { method: "POST" }),
   unclaimDriver: (careerId: string, entrantId: string) =>
     req<{ ok: true }>(`/api/careers/${careerId}/entrants/${entrantId}/claim`, { method: "DELETE" }),
+  listUsers: () => req<{ users: ClaimUser[] }>("/api/users"),
+  assignDriver: (careerId: string, entrantId: string, userId: string | null) =>
+    req<{ ok: true }>(`/api/careers/${careerId}/entrants/${entrantId}/assign`, {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    }),
 
   getRoster: () => req<{ teams: Team[] }>("/api/roster"),
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type EntrantInput, type Team } from "../api";
 import Avatar from "../components/Avatar";
+import { useAuth } from "../auth";
 
 // One editable seat on the grid. Starts as the real driver; can become a player.
 interface Seat extends EntrantInput {
@@ -13,6 +14,7 @@ interface Seat extends EntrantInput {
 
 export default function NewCareerPage() {
   const nav = useNavigate();
+  const { user, enabled, login } = useAuth();
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [name, setName] = useState("");
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -123,6 +125,19 @@ export default function NewCareerPage() {
     }
   }
 
+  if (enabled && !user) {
+    return (
+      <div className="max-w-md mx-auto panel p-8 text-center mt-10">
+        <h1 className="text-xl font-extrabold mb-2">Log in to create a career</h1>
+        <p className="text-zinc-500 text-sm mb-4">
+          You need to be logged in with Discord to create or edit careers.
+        </p>
+        <button onClick={login} className="btn text-white" style={{ background: "#5865F2" }}>
+          Log in with Discord
+        </button>
+      </div>
+    );
+  }
   if (error && !teams) return <p className="text-f1-red">{error}</p>;
   if (!teams) return <p className="text-zinc-500">Loading roster…</p>;
 

@@ -102,3 +102,9 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
   if (!req.user) return res.status(401).json({ error: "Log in with Discord first." });
   next();
 }
+
+export function requireAdmin(req: AuthedRequest, res: Response, next: NextFunction) {
+  if (!req.user) return res.status(401).json({ error: "Log in with Discord first." });
+  if (!req.user.isAdmin) return res.status(403).json({ error: "Admins only." });
+  next();
+}

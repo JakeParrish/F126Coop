@@ -5,7 +5,7 @@ import { CALENDAR } from "../data/f126.js";
 import { pointsFor } from "../points.js";
 import { computeStandings } from "../standings.js";
 import { uniqueSlug } from "../slug.js";
-import { requireAuth, publicUser, type AuthedRequest } from "../auth.js";
+import { requireAuth, requireAdmin, publicUser, type AuthedRequest } from "../auth.js";
 
 export const careersRouter = Router();
 
@@ -88,7 +88,7 @@ careersRouter.get("/careers", async (_req, res) => {
 });
 
 // Create a career: snapshot the chosen grid + the 2026 calendar.
-careersRouter.post("/careers", async (req, res) => {
+careersRouter.post("/careers", requireAuth, async (req, res) => {
   const parsed = createCareerInput.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: parsed.error.flatten() });
@@ -167,7 +167,7 @@ careersRouter.get("/careers/:id", async (req, res) => {
 });
 
 // Rename a career.
-careersRouter.patch("/careers/:id", async (req, res) => {
+careersRouter.patch("/careers/:id", requireAuth, async (req, res) => {
   const schema = z.object({ name: z.string().min(1).max(60) });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -180,7 +180,7 @@ careersRouter.patch("/careers/:id", async (req, res) => {
 });
 
 // Delete a career (cascades to entrants, races, results).
-careersRouter.delete("/careers/:id", async (req, res) => {
+careersRouter.delete("/careers/:id", requireAuth, async (req, res) => {
   try {
     await prisma.career.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
@@ -190,7 +190,7 @@ careersRouter.delete("/careers/:id", async (req, res) => {
 });
 
 // Edit a race (toggle sprint, fix date/name, etc.).
-careersRouter.patch("/careers/:id/races/:raceId", async (req, res) => {
+careersRouter.patch("/careers/:id/races/:raceId", requireAuth, async (req, res) => {
   const parsed = editRaceInput.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
@@ -214,7 +214,7 @@ careersRouter.patch("/careers/:id/races/:raceId", async (req, res) => {
 });
 
 // Submit (replace) results for one session of a race; points auto-assigned.
-careersRouter.put("/careers/:id/races/:raceId/results", async (req, res) => {
+careersRouter.put("/careers/:id/races/:raceId/results", requireAuth, async (req, res) => {
   const parsed = submitResultsInput.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const { session, results } = parsed.data;
@@ -280,7 +280,7 @@ careersRouter.put("/careers/:id/races/:raceId/results", async (req, res) => {
 });
 
 // Clear all results for one session of a race.
-careersRouter.delete("/careers/:id/races/:raceId/results", async (req, res) => {
+careersRouter.delete("/careers/:id/races/:raceId/results", requireAuth, async (req, res) => {
   const session = req.query.session === "SPRINT" ? "SPRINT" : "RACE";
   const race = await prisma.race.findFirst({
     where: { id: req.params.raceId, careerId: req.params.id },
@@ -296,7 +296,7 @@ careersRouter.delete("/careers/:id/races/:raceId/results", async (req, res) => {
 });
 
 // Edit a single grid seat (rename, renumber, set photo, mark as player).
-careersRouter.patch("/careers/:id/entrants/:entrantId", async (req, res) => {
+careersRouter.patch("/careers/:id/entrants/:entrantId", requireAuth, async (req, res) => {
   const parsed = editEntrantInput.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
@@ -371,6 +371,40 @@ careersRouter.post(
       }
     }
     await prisma.entrant.update({ where: { id: entrant.id }, data: { claimedById: user.id } });
+    res.json({ ok: true });
+  }
+);
+
+// List all logged-in users (admin only) — for manual driver assignment.
+careersRouter.get("/users", requireAuth, requireAdmin, async (_req, res) => {
+  const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+  res.json({ users: users.map(publicUser) });
+});
+
+// Admin: assign (or clear) a custom driver to a specific user, bypassing claims.
+careersRouter.post(
+  "/careers/:id/entrants/:entrantId/assign",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    const parsed = z.object({ userId: z.string().nullable() }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+    const entrant = await prisma.entrant.findFirst({
+      where: { id: req.params.entrantId, careerId: req.params.id },
+    });
+    if (!entrant) return res.status(404).json({ error: "Seat not found." });
+    if (!entrant.isPlayer) {
+      return res.status(400).json({ error: "Only custom drivers can be assigned." });
+    }
+    if (parsed.data.userId) {
+      const u = await prisma.user.findUnique({ where: { id: parsed.data.userId } });
+      if (!u) return res.status(400).json({ error: "Unknown user." });
+    }
+    await prisma.entrant.update({
+      where: { id: entrant.id },
+      data: { claimedById: parsed.data.userId },
+    });
     res.json({ ok: true });
   }
 );
