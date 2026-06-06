@@ -5,6 +5,7 @@ import { CALENDAR } from "../data/f126.js";
 import { pointsFor } from "../points.js";
 import { computeStandings } from "../standings.js";
 import { uniqueSlug } from "../slug.js";
+import { requireAuth, publicUser, type AuthedRequest } from "../auth.js";
 
 export const careersRouter = Router();
 
@@ -147,7 +148,7 @@ careersRouter.get("/careers/:id", async (req, res) => {
   const career = await prisma.career.findFirst({
     where: { OR: [{ slug: key }, { id: key }] },
     include: {
-      entrants: { orderBy: { order: "asc" }, include: { team: true } },
+      entrants: { orderBy: { order: "asc" }, include: { team: true, claimedBy: true } },
       races: {
         orderBy: { round: "asc" },
         include: { results: true },
@@ -156,8 +157,13 @@ careersRouter.get("/careers/:id", async (req, res) => {
   });
   if (!career) return res.status(404).json({ error: "Career not found." });
 
+  // Trim the claiming user to a public-safe shape.
+  const careerOut = {
+    ...career,
+    entrants: career.entrants.map((e) => ({ ...e, claimedBy: publicUser(e.claimedBy) })),
+  };
   const standings = await computeStandings(career.id);
-  res.json({ career, standings });
+  res.json({ career: careerOut, standings });
 });
 
 // Rename a career.
@@ -337,3 +343,52 @@ careersRouter.patch("/careers/:id/entrants/:entrantId", async (req, res) => {
   await prisma.career.update({ where: { id: req.params.id }, data: {} }); // bump updatedAt
   res.json({ entrant: updated });
 });
+
+// Claim a custom-driver seat for the logged-in user (1 per career, unless admin).
+careersRouter.post(
+  "/careers/:id/entrants/:entrantId/claim",
+  requireAuth,
+  async (req: AuthedRequest, res) => {
+    const user = req.user!;
+    const entrant = await prisma.entrant.findFirst({
+      where: { id: req.params.entrantId, careerId: req.params.id },
+    });
+    if (!entrant) return res.status(404).json({ error: "Seat not found." });
+    if (!entrant.isPlayer) {
+      return res.status(400).json({ error: "Only custom drivers can be claimed." });
+    }
+    if (entrant.claimedById && entrant.claimedById !== user.id && !user.isAdmin) {
+      return res.status(400).json({ error: "That driver is already claimed by someone else." });
+    }
+    if (!user.isAdmin) {
+      const existing = await prisma.entrant.findFirst({
+        where: { careerId: req.params.id, claimedById: user.id, id: { not: entrant.id } },
+      });
+      if (existing) {
+        return res
+          .status(400)
+          .json({ error: `You already claimed ${existing.name} in this career.` });
+      }
+    }
+    await prisma.entrant.update({ where: { id: entrant.id }, data: { claimedById: user.id } });
+    res.json({ ok: true });
+  }
+);
+
+// Release a claim (claimer or admin only).
+careersRouter.delete(
+  "/careers/:id/entrants/:entrantId/claim",
+  requireAuth,
+  async (req: AuthedRequest, res) => {
+    const user = req.user!;
+    const entrant = await prisma.entrant.findFirst({
+      where: { id: req.params.entrantId, careerId: req.params.id },
+    });
+    if (!entrant) return res.status(404).json({ error: "Seat not found." });
+    if (entrant.claimedById && entrant.claimedById !== user.id && !user.isAdmin) {
+      return res.status(403).json({ error: "You can only unclaim your own driver." });
+    }
+    await prisma.entrant.update({ where: { id: entrant.id }, data: { claimedById: null } });
+    res.json({ ok: true });
+  }
+);

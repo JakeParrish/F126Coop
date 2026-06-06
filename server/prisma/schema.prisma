@@ -54,6 +54,18 @@ model Driver {
 // A co-op career save.
 // ---------------------------------------------------------------------------
 
+// A Discord-authenticated user.
+model User {
+  id         String    @id @default(cuid())
+  discordId  String    @unique
+  username   String
+  globalName String?
+  avatar     String? // Discord avatar hash
+  isAdmin    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  claims     Entrant[]
+}
+
 model Career {
   id         String     @id @default(cuid())
   slug       String?    @unique // human-readable URL key, derived from name
@@ -82,8 +94,12 @@ model Entrant {
   order         Int // display order within the grid
   results       Result[]
 
+  claimedById String? // Discord user who claimed this custom driver
+  claimedBy   User?   @relation(fields: [claimedById], references: [id], onDelete: SetNull)
+
   @@index([careerId])
   @@index([teamId])
+  @@index([claimedById])
 }
 
 // A round on a career's calendar. Seeded from the 2026 calendar template.

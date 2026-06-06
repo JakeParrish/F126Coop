@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type CareerDetail } from "../api";
+import { api, type CareerDetail, type Entrant } from "../api";
+import { useAuth } from "../auth";
 import TeamLogo from "../components/TeamLogo";
 import DriverPortrait from "../components/DriverPortrait";
 import Flag from "../components/Flag";
@@ -89,6 +90,8 @@ export default function DriverPage() {
         </div>
       </div>
 
+      {entrant.isPlayer && <ClaimBar careerId={career.id} entrant={entrant} onChange={load} />}
+
       {/* Season summary */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         <Stat label="Championship" value={rank ? `P${rank}` : "—"} />
@@ -163,6 +166,77 @@ function Finish({
   const cls =
     p === 1 ? "text-yellow-400" : p === 2 ? "text-zinc-300" : p === 3 ? "text-amber-600" : "text-zinc-200";
   return <span className={`font-bold ${cls}`}>P{p}</span>;
+}
+
+// Claim / unclaim a custom-driver seat (Discord login required).
+function ClaimBar({
+  careerId,
+  entrant,
+  onChange,
+}: {
+  careerId: string;
+  entrant: Entrant;
+  onChange: () => Promise<void>;
+}) {
+  const { user, enabled, login } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!enabled) return null;
+
+  const claimer = entrant.claimedBy;
+  const mine = !!claimer && !!user && claimer.id === user.id;
+
+  async function act(fn: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      await onChange();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="panel p-3 mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-sm">
+        {claimer ? (
+          <>
+            <img src={claimer.avatarUrl} alt={claimer.name} className="w-6 h-6 rounded-full" />
+            <span>
+              Claimed by <span className="font-semibold">{claimer.name}</span>
+              {mine && " (you)"}
+            </span>
+          </>
+        ) : (
+          <span className="text-zinc-400">This custom driver is unclaimed.</span>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {error && <span className="text-f1-red text-xs">{error}</span>}
+        {!user ? (
+          <button onClick={login} className="btn text-xs text-white" style={{ background: "#5865F2" }}>
+            Log in to claim
+          </button>
+        ) : !claimer ? (
+          <button onClick={() => act(() => api.claimDriver(careerId, entrant.id))} disabled={busy} className="btn-primary text-xs">
+            {busy ? "…" : "Claim this driver"}
+          </button>
+        ) : mine ? (
+          <button onClick={() => act(() => api.unclaimDriver(careerId, entrant.id))} disabled={busy} className="btn-ghost text-xs">
+            Unclaim
+          </button>
+        ) : user.isAdmin ? (
+          <button onClick={() => act(() => api.unclaimDriver(careerId, entrant.id))} disabled={busy} className="btn-ghost text-xs">
+            Unclaim (admin)
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {

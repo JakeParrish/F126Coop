@@ -3,6 +3,14 @@
 export type Session = "RACE" | "SPRINT";
 export type RaceStatus = "UPCOMING" | "COMPLETED";
 
+export interface AuthUser {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  isAdmin: boolean;
+}
+export type ClaimUser = AuthUser;
+
 export interface Driver {
   id: string;
   name: string;
@@ -33,6 +41,8 @@ export interface Entrant {
   imageUrl: string | null;
   order: number;
   team: Team;
+  claimedById: string | null;
+  claimedBy: ClaimUser | null;
 }
 
 export interface Result {
@@ -89,6 +99,7 @@ export interface DriverStanding {
   points: number;
   wins: number;
   podiums: number;
+  claimedBy: ClaimUser | null;
 }
 
 export interface ConstructorStanding {
@@ -156,6 +167,14 @@ export interface ResultRowInput {
 }
 
 export const api = {
+  getAuthStatus: () => req<{ enabled: boolean }>("/api/auth/status"),
+  getMe: () => req<{ user: AuthUser | null }>("/api/auth/me"),
+  logout: () => req<{ ok: true }>("/api/auth/logout", { method: "POST" }),
+  claimDriver: (careerId: string, entrantId: string) =>
+    req<{ ok: true }>(`/api/careers/${careerId}/entrants/${entrantId}/claim`, { method: "POST" }),
+  unclaimDriver: (careerId: string, entrantId: string) =>
+    req<{ ok: true }>(`/api/careers/${careerId}/entrants/${entrantId}/claim`, { method: "DELETE" }),
+
   getRoster: () => req<{ teams: Team[] }>("/api/roster"),
 
   listCareers: () => req<{ careers: CareerSummary[] }>("/api/careers"),

@@ -1,4 +1,5 @@
 import { prisma } from "./db.js";
+import { publicUser } from "./auth.js";
 
 export interface DriverStanding {
   entrantId: string;
@@ -13,6 +14,7 @@ export interface DriverStanding {
   points: number;
   wins: number;
   podiums: number;
+  claimedBy: { id: string; name: string; avatarUrl: string; isAdmin: boolean } | null;
 }
 
 export interface ConstructorStanding {
@@ -31,6 +33,7 @@ export async function computeStandings(careerId: string) {
     include: {
       team: true,
       results: true,
+      claimedBy: true,
     },
   });
 
@@ -59,6 +62,7 @@ export async function computeStandings(careerId: string) {
       points,
       wins,
       podiums,
+      claimedBy: publicUser(e.claimedBy),
     };
   });
 
