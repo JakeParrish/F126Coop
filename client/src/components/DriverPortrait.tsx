@@ -9,9 +9,11 @@ interface Props {
   height?: number;
   className?: string;
   useConvention?: boolean;
+  circle?: boolean; // render a circular avatar (custom drivers) instead of a tall headshot
 }
 
-// A full (non-circular) driver headshot, falling back to a monogram on error.
+// A driver headshot. Real drivers render as a tall cut-out; custom drivers
+// render as a circular avatar (their Discord PFP, or a monogram if unclaimed).
 export default function DriverPortrait({
   name,
   code,
@@ -20,11 +22,28 @@ export default function DriverPortrait({
   height = 120,
   className = "",
   useConvention = true,
+  circle = false,
 }: Props) {
   const explicit = imageUrl && imageUrl.trim() ? imageUrl.trim() : null;
   const src = explicit || (useConvention ? `/drivers/${code.toUpperCase()}.png` : null);
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
+
+  // Custom drivers: a circular avatar (PFP/monogram) sized like the monogram.
+  if (circle) {
+    return (
+      <span className={className}>
+        <Avatar
+          name={name}
+          code={code}
+          teamColor={teamColor}
+          imageUrl={imageUrl}
+          useConvention={useConvention}
+          size={height * 0.66}
+        />
+      </span>
+    );
+  }
 
   if (failed || !src) {
     return (

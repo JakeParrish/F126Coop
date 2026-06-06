@@ -275,6 +275,7 @@ function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: 
           teamColor={color}
           imageUrl={driverPhoto(d)}
           useConvention={!d.isPlayer}
+          circle={d.isPlayer}
           height={132}
           className="self-end max-w-[48%]"
         />

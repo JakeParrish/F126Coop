@@ -93,6 +93,7 @@ export default function DriverPage() {
             teamColor={color}
             imageUrl={driverPhoto(entrant)}
             useConvention={!entrant.isPlayer}
+            circle={entrant.isPlayer}
             height={210}
             className="self-end hidden sm:block"
           />
