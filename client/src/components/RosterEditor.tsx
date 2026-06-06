@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { api, type CareerDetail, type Entrant, type Team } from "../api";
+import { useEffect, useState } from "react";
+import { api, type CareerDetail, type ClaimUser, type Entrant, type Team } from "../api";
 import Avatar from "./Avatar";
 import TeamLogo from "./TeamLogo";
+import { useAuth } from "../auth";
 
 interface Row {
   name: string;
@@ -20,7 +21,19 @@ export default function RosterEditor({
   career: CareerDetail["career"];
   onSaved: () => Promise<void>;
 }) {
+  const { user } = useAuth();
+  const isAdmin = !!user?.isAdmin;
   const entrantById = new Map<string, Entrant>(career.entrants.map((e) => [e.id, e]));
+
+  const [users, setUsers] = useState<ClaimUser[]>([]);
+  useEffect(() => {
+    if (isAdmin) {
+      api
+        .listUsers()
+        .then((r) => setUsers(r.users))
+        .catch(() => {});
+    }
+  }, [isAdmin]);
 
   const [rows, setRows] = useState<Record<string, Row>>(() =>
     Object.fromEntries(
@@ -72,6 +85,19 @@ export default function RosterEditor({
         },
       }));
       setSavedId(id);
+      await onSaved();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function assign(id: string, userId: string | null) {
+    setSavingId(id);
+    setError(null);
+    try {
+      await api.assignDriver(career.id, id, userId);
       await onSaved();
     } catch (e) {
       setError((e as Error).message);
@@ -170,6 +196,27 @@ export default function RosterEditor({
                   </button>
                   {e.replacedDriver && r.isPlayer && (
                     <span className="text-[11px] text-zinc-600 w-full">replaces {e.replacedDriver}</span>
+                  )}
+                  {isAdmin && r.isPlayer && (
+                    <div className="w-full flex items-center gap-2 text-xs text-zinc-400 mt-1">
+                      <span>Assign to:</span>
+                      <select
+                        className="input text-xs py-1"
+                        value={e.claimedBy?.id ?? ""}
+                        disabled={savingId === id}
+                        onChange={(ev) => assign(id, ev.target.value || null)}
+                      >
+                        <option value="">— unassigned —</option>
+                        {users.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.name}
+                          </option>
+                        ))}
+                      </select>
+                      {e.claimedBy && (
+                        <img src={e.claimedBy.avatarUrl} alt={e.claimedBy.name} className="w-5 h-5 rounded-full" />
+                      )}
+                    </div>
                   )}
                 </div>
               );
