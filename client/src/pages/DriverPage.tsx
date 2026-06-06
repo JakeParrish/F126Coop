@@ -51,6 +51,14 @@ export default function DriverPage() {
   const last = rest.join(" ");
   const nat = nationalityIso(entrant.code);
 
+  // Season award tallies (non-scoring).
+  const awards = {
+    dotd: career.races.filter((r) => r.driverOfDayId === entrant.id).length,
+    fl: career.races.filter((r) => r.fastestLapId === entrant.id).length,
+    overtakes: career.races.filter((r) => r.mostOvertakesId === entrant.id).length,
+    clean: career.races.filter((r) => r.cleanestId === entrant.id).length,
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <Link to={backTo} className="text-xs text-zinc-500 hover:text-zinc-300">
@@ -99,6 +107,17 @@ export default function DriverPage() {
         <Stat label="Wins" value={standing?.wins ?? 0} />
         <Stat label="Podiums" value={standing?.podiums ?? 0} />
         <Stat label="Best finish" value={isFinite(best) ? `P${best}` : "—"} />
+      </div>
+
+      {/* Award tallies */}
+      <h2 className="font-bold text-lg mb-2">
+        Awards <span className="text-zinc-500 text-sm font-normal">· season totals</span>
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <AwardStat icon="★" label="Driver of the Day" value={awards.dotd} />
+        <AwardStat icon="⏱" label="Fastest Lap" value={awards.fl} />
+        <AwardStat icon="⇄" label="Most Overtakes" value={awards.overtakes} />
+        <AwardStat icon="✦" label="Cleanest Driver" value={awards.clean} />
       </div>
 
       {/* Per-race results */}
@@ -218,8 +237,7 @@ function ClaimBar({
           <>
             <img src={claimer.avatarUrl} alt={claimer.name} className="w-6 h-6 rounded-full" />
             <span>
-              {user?.isAdmin ? "Assigned to" : "Claimed by"}{" "}
-              <span className="font-semibold">{claimer.name}</span>
+              Claimed by <span className="font-semibold">{claimer.name}</span>
               {mine && " (you)"}
             </span>
           </>
@@ -227,36 +245,43 @@ function ClaimBar({
           <span className="text-zinc-400">This custom driver is unclaimed.</span>
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {error && <span className="text-f1-red text-xs">{error}</span>}
         {!user ? (
           <button onClick={login} className="btn text-xs text-white" style={{ background: "#5865F2" }}>
             Log in to claim
           </button>
-        ) : user.isAdmin ? (
-          <select
-            className="input text-xs"
-            disabled={busy}
-            value={claimer?.id ?? ""}
-            onChange={(e) => act(() => api.assignDriver(careerId, entrant.id, e.target.value || null))}
-          >
-            <option value="">— unassigned —</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-        ) : !claimer ? (
-          <button onClick={() => act(() => api.claimDriver(careerId, entrant.id))} disabled={busy} className="btn-primary text-xs">
-            {busy ? "…" : "Claim this driver"}
-          </button>
-        ) : mine ? (
-          <button onClick={() => act(() => api.unclaimDriver(careerId, entrant.id))} disabled={busy} className="btn-ghost text-xs">
-            Unclaim
-          </button>
         ) : (
-          <span className="text-xs text-zinc-500">Claimed by someone else</span>
+          <>
+            {/* Claim button — visible to every logged-in user */}
+            {!claimer ? (
+              <button onClick={() => act(() => api.claimDriver(careerId, entrant.id))} disabled={busy} className="btn-primary text-xs">
+                {busy ? "…" : "Claim this driver"}
+              </button>
+            ) : mine ? (
+              <button onClick={() => act(() => api.unclaimDriver(careerId, entrant.id))} disabled={busy} className="btn-ghost text-xs">
+                Unclaim
+              </button>
+            ) : (
+              <span className="text-xs text-zinc-500">Already claimed</span>
+            )}
+            {/* Admins additionally get an assign dropdown */}
+            {user.isAdmin && (
+              <select
+                className="input text-xs"
+                disabled={busy}
+                value={claimer?.id ?? ""}
+                onChange={(e) => act(() => api.assignDriver(careerId, entrant.id, e.target.value || null))}
+              >
+                <option value="">— assign… —</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -267,6 +292,18 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="panel p-3 text-center">
       <div className="text-[11px] uppercase tracking-wide text-zinc-500">{label}</div>
+      <div className="text-2xl font-extrabold mt-0.5">{value}</div>
+    </div>
+  );
+}
+
+function AwardStat({ icon, label, value }: { icon: string; label: string; value: number }) {
+  return (
+    <div className="panel p-3 text-center">
+      <div className="text-[11px] uppercase tracking-wide text-zinc-500">
+        <span className="text-yellow-400 mr-1">{icon}</span>
+        {label}
+      </div>
       <div className="text-2xl font-extrabold mt-0.5">{value}</div>
     </div>
   );
