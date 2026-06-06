@@ -4,7 +4,8 @@ import { api, type CareerDetail, type Session } from "../api";
 import SessionEntry from "../components/SessionEntry";
 import RaceAwards from "../components/RaceAwards";
 import TrackMap from "../components/TrackMap";
-import { flagFor } from "../lib/ui";
+import Flag from "../components/Flag";
+import { countryIso } from "../lib/ui";
 
 export default function RaceResultsPage() {
   const { slug, round } = useParams();
@@ -49,7 +50,7 @@ export default function RaceResultsPage() {
             )}
           </div>
           <h1 className="text-2xl font-extrabold mt-1 flex items-center gap-2">
-            <span>{flagFor(race.country)}</span>
+            <Flag iso={countryIso(race.country)} className="h-6" />
             {race.name}
           </h1>
           <p className="text-zinc-400">{race.circuit}</p>

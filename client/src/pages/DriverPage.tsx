@@ -3,7 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { api, type CareerDetail } from "../api";
 import TeamLogo from "../components/TeamLogo";
 import DriverPortrait from "../components/DriverPortrait";
-import { driverKey, flagFor, nationalityFlag } from "../lib/ui";
+import Flag from "../components/Flag";
+import { countryIso, driverKey, nationalityIso } from "../lib/ui";
 
 export default function DriverPage() {
   const { slug, name: nameParam } = useParams();
@@ -47,7 +48,7 @@ export default function DriverPage() {
   const color = entrant.team.color;
   const [first, ...rest] = entrant.name.split(" ");
   const last = rest.join(" ");
-  const nat = nationalityFlag(entrant.code);
+  const nat = nationalityIso(entrant.code);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -71,7 +72,7 @@ export default function DriverPage() {
             </div>
             <div className="flex items-center gap-3 mt-3">
               <span className="text-4xl sm:text-5xl font-extrabold italic">{entrant.number}</span>
-              {nat && <span className="text-2xl">{nat}</span>}
+              {nat && <Flag iso={nat} className="h-6" />}
               {entrant.isPlayer && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/20">PLAYER</span>
               )}
@@ -122,7 +123,7 @@ export default function DriverPage() {
                       to={`${backTo}/race/${r.round}`}
                       className="flex items-center gap-2 hover:text-f1-red"
                     >
-                      <span>{flagFor(r.country)}</span>
+                      <Flag iso={countryIso(r.country)} className="h-4" />
                       <span className="font-medium">{r.country}</span>
                       {r.isSprint && (
                         <span className="text-[9px] font-bold px-1 rounded bg-yellow-500/20 text-yellow-400">

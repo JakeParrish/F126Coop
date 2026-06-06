@@ -1,42 +1,42 @@
-// Flag emoji for the countries on the 2026 calendar.
-const FLAGS: Record<string, string> = {
-  Australia: "🇦🇺",
-  China: "🇨🇳",
-  Japan: "🇯🇵",
-  Bahrain: "🇧🇭",
-  "Saudi Arabia": "🇸🇦",
-  "United States": "🇺🇸",
-  Canada: "🇨🇦",
-  Monaco: "🇲🇨",
-  Spain: "🇪🇸",
-  Austria: "🇦🇹",
-  "United Kingdom": "🇬🇧",
-  Belgium: "🇧🇪",
-  Hungary: "🇭🇺",
-  Netherlands: "🇳🇱",
-  Italy: "🇮🇹",
-  Azerbaijan: "🇦🇿",
-  Singapore: "🇸🇬",
-  Mexico: "🇲🇽",
-  Brazil: "🇧🇷",
-  Qatar: "🇶🇦",
-  "United Arab Emirates": "🇦🇪",
+// ISO country codes for the countries on the 2026 calendar (for flag images).
+const COUNTRY_ISO: Record<string, string> = {
+  Australia: "au",
+  China: "cn",
+  Japan: "jp",
+  Bahrain: "bh",
+  "Saudi Arabia": "sa",
+  "United States": "us",
+  Canada: "ca",
+  Monaco: "mc",
+  Spain: "es",
+  Austria: "at",
+  "United Kingdom": "gb",
+  Belgium: "be",
+  Hungary: "hu",
+  Netherlands: "nl",
+  Italy: "it",
+  Azerbaijan: "az",
+  Singapore: "sg",
+  Mexico: "mx",
+  Brazil: "br",
+  Qatar: "qa",
+  "United Arab Emirates": "ae",
 };
 
-export function flagFor(country: string): string {
-  return FLAGS[country] ?? "🏁";
+export function countryIso(country: string): string | null {
+  return COUNTRY_ISO[country] ?? null;
 }
 
-// Driver nationality by 3-letter code (2026 grid). Custom players have none.
-const NATIONALITY: Record<string, string> = {
-  NOR: "🇬🇧", PIA: "🇦🇺", LEC: "🇲🇨", HAM: "🇬🇧", RUS: "🇬🇧", ANT: "🇮🇹",
-  VER: "🇳🇱", HAD: "🇫🇷", SAI: "🇪🇸", ALB: "🇹🇭", LAW: "🇳🇿", LIN: "🇬🇧",
-  ALO: "🇪🇸", STR: "🇨🇦", OCO: "🇫🇷", BEA: "🇬🇧", HUL: "🇩🇪", BOR: "🇧🇷",
-  GAS: "🇫🇷", COL: "🇦🇷", PER: "🇲🇽", BOT: "🇫🇮",
+// Driver nationality ISO by 3-letter code (2026 grid). Custom players have none.
+const NATIONALITY_ISO: Record<string, string> = {
+  NOR: "gb", PIA: "au", LEC: "mc", HAM: "gb", RUS: "gb", ANT: "it",
+  VER: "nl", HAD: "fr", SAI: "es", ALB: "th", LAW: "nz", LIN: "gb",
+  ALO: "es", STR: "ca", OCO: "fr", BEA: "gb", HUL: "de", BOR: "br",
+  GAS: "fr", COL: "ar", PER: "mx", BOT: "fi",
 };
 
-export function nationalityFlag(code: string): string | null {
-  return NATIONALITY[code.toUpperCase()] ?? null;
+export function nationalityIso(code: string): string | null {
+  return NATIONALITY_ISO[code.toUpperCase()] ?? null;
 }
 
 // URL key for a driver, e.g. "Max Verstappen" -> "MaxVerstappen".

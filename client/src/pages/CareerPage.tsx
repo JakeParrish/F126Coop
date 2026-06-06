@@ -6,7 +6,8 @@ import Avatar from "../components/Avatar";
 import TeamLogo from "../components/TeamLogo";
 import DriverPortrait from "../components/DriverPortrait";
 import RosterEditor from "../components/RosterEditor";
-import { driverKey, flagFor, nationalityFlag, raceDateRange } from "../lib/ui";
+import Flag from "../components/Flag";
+import { countryIso, driverKey, nationalityIso, raceDateRange } from "../lib/ui";
 import type { DriverStanding } from "../api";
 
 const TABS = ["calendar", "drivers", "constructors", "roster"] as const;
@@ -108,7 +109,7 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
 
             <div className="px-4">
               <div className="text-xl font-extrabold flex items-center gap-2 leading-tight">
-                <span>{flagFor(r.country)}</span>
+                <Flag iso={countryIso(r.country)} className="h-5" />
                 {r.country}
               </div>
               <div className="text-[11px] text-zinc-500 uppercase tracking-wide mt-0.5">
@@ -197,7 +198,7 @@ function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: 
   const color = d.teamColor;
   const [first, ...rest] = d.name.split(" ");
   const last = rest.join(" ");
-  const nat = nationalityFlag(d.code);
+  const nat = nationalityIso(d.code);
 
   return (
     <Link
@@ -207,9 +208,9 @@ function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: 
     >
       <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/5 to-transparent" />
 
-      <div className="absolute top-2 right-2 text-right text-white drop-shadow">
-        <div className="text-[10px] font-bold opacity-90">P{rank}</div>
-        <div className="text-base font-extrabold leading-none">
+      <div className="absolute top-2 right-2 z-10 text-right text-white bg-black/40 rounded-md px-1.5 py-0.5 backdrop-blur-sm">
+        <div className="text-[10px] font-bold opacity-90 leading-none">P{rank}</div>
+        <div className="text-base font-extrabold leading-none mt-0.5">
           {d.points}
           <span className="text-[9px] font-semibold opacity-80 ml-0.5">PTS</span>
         </div>
@@ -222,7 +223,7 @@ function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: 
           <div className="text-[11px] opacity-90 mt-0.5">{d.teamName}</div>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-2xl font-extrabold italic">{d.number}</span>
-            {nat && <span className="text-lg leading-none">{nat}</span>}
+            {nat && <Flag iso={nat} className="h-4" />}
             {d.isPlayer && (
               <span className="text-[9px] font-bold px-1 rounded bg-white/20">YOU</span>
             )}
