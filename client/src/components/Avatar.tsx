@@ -8,13 +8,22 @@ interface Props {
   imageUrl?: string | null;
   size?: number; // pixels
   className?: string;
+  objectPosition?: string; // crop focus; defaults to faces (upper portion)
 }
 
 // A driver headshot. Resolves an image in priority order:
 //   1. an explicit imageUrl, else
 //   2. a repo file at /drivers/<CODE>.png (drop headshots there), else
 //   3. a team-coloured monogram fallback (on image load error).
-export default function Avatar({ name, code, teamColor, imageUrl, size = 40, className = "" }: Props) {
+export default function Avatar({
+  name,
+  code,
+  teamColor,
+  imageUrl,
+  size = 40,
+  className = "",
+  objectPosition = "50% 15%",
+}: Props) {
   const src = (imageUrl && imageUrl.trim()) || `/drivers/${code.toUpperCase()}.png`;
   const [failed, setFailed] = useState(false);
 
@@ -41,7 +50,7 @@ export default function Avatar({ name, code, teamColor, imageUrl, size = 40, cla
       alt={name}
       title={name}
       onError={() => setFailed(true)}
-      style={{ ...dim, borderColor: teamColor }}
+      style={{ ...dim, borderColor: teamColor, objectPosition }}
       className={`rounded-full object-cover bg-f1-panel border-2 ${className}`}
     />
   );

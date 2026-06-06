@@ -73,6 +73,21 @@ export default function SessionEntry({
 
   const hasDup = dupPositions.size > 0;
 
+  // Display order: classified finishers 1..N, then unfilled (grid order),
+  // then DNFs at the bottom.
+  const orderedEntrants = useMemo(() => {
+    const sortKey = (e: Entrant, i: number) => {
+      const r = rows[e.id];
+      if (r?.dnf) return 200000 + i;
+      if (r?.position) return Number(r.position);
+      return 100000 + i;
+    };
+    return entrants
+      .map((e, i) => ({ e, i }))
+      .sort((a, b) => sortKey(a.e, a.i) - sortKey(b.e, b.i))
+      .map((x) => x.e);
+  }, [entrants, rows]);
+
   async function save(thenDone: boolean) {
     setError(null);
     if (hasDup) return setError("Two drivers share a finishing position.");
@@ -127,7 +142,7 @@ export default function SessionEntry({
           <span className="w-14 text-right">Pts</span>
         </div>
         <div className="divide-y divide-f1-line">
-          {entrants.map((e) => {
+          {orderedEntrants.map((e) => {
             const r = rows[e.id];
             const pos = r?.position ? Number(r.position) : null;
             const pts = pointsFor(session, pos, r?.dnf ?? false);

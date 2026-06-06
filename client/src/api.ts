@@ -196,6 +196,23 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  updateEntrant: (
+    careerId: string,
+    entrantId: string,
+    data: Partial<{
+      name: string;
+      code: string;
+      number: number;
+      isPlayer: boolean;
+      imageUrl: string | null;
+      replacedDriver: string | null;
+    }>
+  ) =>
+    req<{ entrant: Entrant }>(`/api/careers/${careerId}/entrants/${entrantId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
   submitResults: (careerId: string, raceId: string, session: Session, results: ResultRowInput[]) =>
     req<{ race: Race; standings: Standings }>(
       `/api/careers/${careerId}/races/${raceId}/results`,

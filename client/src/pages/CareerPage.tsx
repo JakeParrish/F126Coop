@@ -4,9 +4,10 @@ import { api, type CareerDetail, type Entrant, type Race } from "../api";
 import TrackMap from "../components/TrackMap";
 import Avatar from "../components/Avatar";
 import TeamBadge from "../components/TeamBadge";
+import RosterEditor from "../components/RosterEditor";
 import { flagFor } from "../lib/ui";
 
-type Tab = "calendar" | "drivers" | "constructors";
+type Tab = "calendar" | "drivers" | "constructors" | "roster";
 
 export default function CareerPage() {
   const { slug } = useParams();
@@ -48,7 +49,7 @@ export default function CareerPage() {
       </div>
 
       <div className="flex gap-1 mb-5 bg-f1-panel border border-f1-line rounded-xl p-1 w-fit">
-        {(["calendar", "drivers", "constructors"] as Tab[]).map((t) => (
+        {(["calendar", "drivers", "constructors", "roster"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -62,6 +63,7 @@ export default function CareerPage() {
       {tab === "calendar" && <Calendar career={career} />}
       {tab === "drivers" && <DriverStandings standings={standings} />}
       {tab === "constructors" && <ConstructorStandings standings={standings} />}
+      {tab === "roster" && <RosterEditor career={career} onSaved={load} />}
     </div>
   );
 }
@@ -74,7 +76,7 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {career.races.map((r) => {
         const done = r.status === "COMPLETED";
-        const winner = winnerOf(r, entrantById);
+        const podium = podiumOf(r, entrantById);
         return (
           <Link
             key={r.id}
@@ -109,19 +111,29 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
               </div>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-f1-line flex items-center justify-between">
-              {done && winner ? (
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="text-yellow-400">🏆</span>
-                  <Avatar
-                    name={winner.name}
-                    code={winner.code}
-                    teamColor={winner.team.color}
-                    imageUrl={winner.imageUrl}
-                    size={22}
-                  />
-                  <span className="font-semibold">{winner.name}</span>
-                </span>
+            <div className="mt-3 pt-2 border-t border-f1-line flex items-center justify-between gap-2">
+              {done && podium[0] ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {podium.map((p, idx) =>
+                    p ? (
+                      <span
+                        key={idx}
+                        className="flex items-center gap-1"
+                        title={`P${idx + 1} · ${p.name}`}
+                      >
+                        <span className="text-xs">{MEDALS[idx]}</span>
+                        <Avatar
+                          name={p.name}
+                          code={p.code}
+                          teamColor={p.team.color}
+                          imageUrl={p.imageUrl}
+                          size={20}
+                        />
+                        <span className="text-[11px] font-semibold">{p.code}</span>
+                      </span>
+                    ) : null
+                  )}
+                </div>
               ) : (
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${
@@ -142,10 +154,14 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
   );
 }
 
-// The Grand Prix winner's entrant, if results are in.
-function winnerOf(race: Race, byId: Map<string, Entrant>): Entrant | undefined {
-  const win = race.results.find((r) => r.session === "RACE" && r.position === 1 && !r.dnf);
-  return win ? byId.get(win.entrantId) : undefined;
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+// The Grand Prix podium (P1, P2, P3) — entries may be undefined if not entered.
+function podiumOf(race: Race, byId: Map<string, Entrant>): (Entrant | undefined)[] {
+  return [1, 2, 3].map((pos) => {
+    const r = race.results.find((x) => x.session === "RACE" && x.position === pos && !x.dnf);
+    return r ? byId.get(r.entrantId) : undefined;
+  });
 }
 
 function DriverStandings({ standings }: { standings: CareerDetail["standings"] }) {

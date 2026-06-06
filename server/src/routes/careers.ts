@@ -50,6 +50,15 @@ const editRaceInput = z.object({
   fastestLapId: z.string().nullable().optional(),
 });
 
+const editEntrantInput = z.object({
+  name: z.string().min(1).max(40).optional(),
+  code: z.string().min(1).max(4).optional(),
+  number: z.number().int().min(0).max(999).optional(),
+  isPlayer: z.boolean().optional(),
+  imageUrl: z.string().max(500).nullable().optional(),
+  replacedDriver: z.string().max(40).nullable().optional(),
+});
+
 // --- routes -----------------------------------------------------------------
 
 // List careers with a quick summary.
@@ -278,4 +287,35 @@ careersRouter.delete("/careers/:id/races/:raceId/results", async (req, res) => {
   }
   const standings = await computeStandings(req.params.id);
   res.json({ ok: true, standings });
+});
+
+// Edit a single grid seat (rename, renumber, set photo, mark as player).
+careersRouter.patch("/careers/:id/entrants/:entrantId", async (req, res) => {
+  const parsed = editEntrantInput.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const entrant = await prisma.entrant.findFirst({
+    where: { id: req.params.entrantId, careerId: req.params.id },
+  });
+  if (!entrant) return res.status(404).json({ error: "Seat not found." });
+
+  // Car numbers stay unique across the grid.
+  if (parsed.data.number !== undefined) {
+    const clash = await prisma.entrant.findFirst({
+      where: { careerId: req.params.id, number: parsed.data.number, id: { not: entrant.id } },
+    });
+    if (clash) {
+      return res.status(400).json({ error: `Car #${parsed.data.number} is already used by ${clash.name}.` });
+    }
+  }
+
+  const updated = await prisma.entrant.update({
+    where: { id: entrant.id },
+    data: {
+      ...parsed.data,
+      code: parsed.data.code ? parsed.data.code.toUpperCase() : undefined,
+    },
+  });
+  await prisma.career.update({ where: { id: req.params.id }, data: {} }); // bump updatedAt
+  res.json({ entrant: updated });
 });
