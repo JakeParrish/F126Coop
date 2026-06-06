@@ -1,0 +1,119 @@
+// F1CoopSim — Prisma schema
+// Reference data (Team, Driver) mirrors the F1 26 (2026 regulations) grid.
+// Per-career data (Career, Entrant, Race, Result) is created from templates
+// when a career starts, so each save game is fully independent and editable.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Session {
+  RACE
+  SPRINT
+}
+
+enum RaceStatus {
+  UPCOMING
+  COMPLETED
+}
+
+// ---------------------------------------------------------------------------
+// Reference roster (the real F1 26 grid). Used to pre-fill a new career.
+// ---------------------------------------------------------------------------
+
+model Team {
+  id       String   @id @default(cuid())
+  name     String   @unique // short name, e.g. "Ferrari"
+  fullName String // e.g. "Scuderia Ferrari HP"
+  color    String // hex livery colour, e.g. "#E8002D"
+  order    Int // grid display order
+  drivers  Driver[]
+  entrants Entrant[]
+
+  @@index([order])
+}
+
+model Driver {
+  id     String @id @default(cuid())
+  name   String
+  code   String // 3-letter abbreviation, e.g. "LEC"
+  number Int // permanent car number
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+}
+
+// ---------------------------------------------------------------------------
+// A co-op career save.
+// ---------------------------------------------------------------------------
+
+model Career {
+  id         String     @id @default(cuid())
+  name       String
+  seasonYear Int        @default(2026)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  entrants   Entrant[]
+  races      Race[]
+}
+
+// A seat on the grid for a given career. Seeded from the reference roster,
+// but any seat can be replaced by a custom (human) player.
+model Entrant {
+  id            String   @id @default(cuid())
+  careerId      String
+  career        Career   @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  teamId        String
+  team          Team     @relation(fields: [teamId], references: [id])
+  name          String // driver/player display name
+  code          String // 3-letter abbreviation
+  number        Int
+  isPlayer      Boolean  @default(false) // true = custom human player
+  replacedDriver String?  // name of the real driver this seat replaced (if any)
+  order         Int // display order within the grid
+  results       Result[]
+
+  @@index([careerId])
+  @@index([teamId])
+}
+
+// A round on a career's calendar. Seeded from the 2026 calendar template.
+model Race {
+  id        String     @id @default(cuid())
+  careerId  String
+  career    Career     @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  round     Int
+  name      String // e.g. "Australian Grand Prix"
+  country   String
+  circuit   String?
+  date      String? // ISO date string of the Sunday, editable
+  isSprint  Boolean    @default(false)
+  status    RaceStatus @default(UPCOMING)
+  results   Result[]
+
+  @@unique([careerId, round])
+  @@index([careerId])
+}
+
+// A single driver's result in one session of one race.
+model Result {
+  id        String  @id @default(cuid())
+  raceId    String
+  race      Race    @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  entrantId String
+  entrant   Entrant @relation(fields: [entrantId], references: [id], onDelete: Cascade)
+  session   Session @default(RACE)
+  position  Int? // finishing position; null if not classified
+  dnf       Boolean @default(false)
+  points    Int     @default(0)
+
+  @@unique([raceId, entrantId, session])
+  @@index([raceId])
+  @@index([entrantId])
+}

@@ -1,0 +1,215 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api, type EntrantInput, type Team } from "../api";
+
+// One editable seat on the grid. Starts as the real driver; can become a player.
+interface Seat extends EntrantInput {
+  baseName: string; // the real driver originally in this seat
+  baseCode: string;
+  baseNumber: number;
+}
+
+export default function NewCareerPage() {
+  const nav = useNavigate();
+  const [teams, setTeams] = useState<Team[] | null>(null);
+  const [name, setName] = useState("");
+  const [seats, setSeats] = useState<Seat[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .getRoster()
+      .then(({ teams }) => {
+        setTeams(teams);
+        const initial: Seat[] = [];
+        for (const t of teams) {
+          for (const d of t.drivers) {
+            initial.push({
+              teamId: t.id,
+              name: d.name,
+              code: d.code,
+              number: d.number,
+              isPlayer: false,
+              replacedDriver: null,
+              baseName: d.name,
+              baseCode: d.code,
+              baseNumber: d.number,
+            });
+          }
+        }
+        setSeats(initial);
+      })
+      .catch((e) => setError((e as Error).message));
+  }, []);
+
+  const playerCount = seats.filter((s) => s.isPlayer).length;
+
+  function update(i: number, patch: Partial<Seat>) {
+    setSeats((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+  }
+
+  // Toggle a seat between the real driver and a custom player.
+  function togglePlayer(i: number) {
+    setSeats((prev) =>
+      prev.map((s, idx) => {
+        if (idx !== i) return s;
+        if (s.isPlayer) {
+          // revert to the real driver
+          return {
+            ...s,
+            isPlayer: false,
+            replacedDriver: null,
+            name: s.baseName,
+            code: s.baseCode,
+            number: s.baseNumber,
+          };
+        }
+        return {
+          ...s,
+          isPlayer: true,
+          replacedDriver: s.baseName,
+          name: "",
+          code: "",
+        };
+      })
+    );
+  }
+
+  async function create() {
+    setError(null);
+    if (!name.trim()) return setError("Give your career a name.");
+    for (const s of seats) {
+      if (!s.name.trim() || !s.code.trim()) {
+        return setError("Every seat needs a name and a 3-letter code.");
+      }
+    }
+    setSaving(true);
+    try {
+      const entrants: EntrantInput[] = seats.map((s) => ({
+        teamId: s.teamId,
+        name: s.name.trim(),
+        code: s.code.trim().toUpperCase(),
+        number: s.number,
+        isPlayer: s.isPlayer,
+        replacedDriver: s.isPlayer ? s.replacedDriver : null,
+      }));
+      const { id } = await api.createCareer({ name: name.trim(), entrants });
+      nav(`/career/${id}`);
+    } catch (e) {
+      setError((e as Error).message);
+      setSaving(false);
+    }
+  }
+
+  if (error && !teams) return <p className="text-f1-red">{error}</p>;
+  if (!teams) return <p className="text-zinc-500">Loading roster…</p>;
+
+  // Group seat indices by team for display.
+  const rows: { team: Team; seatIdx: number[] }[] = [];
+  teams.forEach((t) => {
+    const idxs = seats.map((s, i) => (s.teamId === t.id ? i : -1)).filter((i) => i >= 0);
+    rows.push({ team: t, seatIdx: idxs });
+  });
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-2xl font-extrabold mb-1">New Career</h1>
+      <p className="text-zinc-500 text-sm mb-6">
+        The full F1 26 grid is pre-loaded. Turn any seat into a player to take that driver's place —
+        their team and car number stay the same.
+      </p>
+
+      <label className="block mb-1 text-sm font-semibold">Career name</label>
+      <input
+        className="input w-full mb-6"
+        placeholder="e.g. Sunday League S1"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-bold">Grid · {seats.length} seats</h2>
+        <span className="text-xs text-zinc-500">{playerCount} player(s)</span>
+      </div>
+
+      <div className="space-y-4">
+        {rows.map(({ team, seatIdx }) => (
+          <div key={team.id} className="panel overflow-hidden">
+            <div
+              className="px-4 py-2 flex items-center gap-2 border-b border-f1-line"
+              style={{ borderLeft: `4px solid ${team.color}` }}
+            >
+              <span className="font-bold">{team.name}</span>
+              <span className="text-xs text-zinc-500">{team.fullName}</span>
+            </div>
+            <div className="divide-y divide-f1-line">
+              {seatIdx.map((i) => {
+                const s = seats[i];
+                return (
+                  <div key={i} className="px-4 py-3 flex flex-wrap items-center gap-2">
+                    <span className="w-8 text-center text-sm font-mono text-zinc-500">
+                      #{s.number}
+                    </span>
+                    {s.isPlayer ? (
+                      <>
+                        <input
+                          className="input flex-1 min-w-[8rem]"
+                          placeholder="Player name"
+                          value={s.name}
+                          onChange={(e) => update(i, { name: e.target.value })}
+                        />
+                        <input
+                          className="input w-20 uppercase"
+                          placeholder="ABB"
+                          maxLength={4}
+                          value={s.code}
+                          onChange={(e) => update(i, { code: e.target.value.toUpperCase() })}
+                        />
+                        <input
+                          className="input w-20"
+                          type="number"
+                          value={s.number}
+                          onChange={(e) => update(i, { number: Number(e.target.value) })}
+                        />
+                        <span className="text-xs text-zinc-500 w-full sm:w-auto">
+                          replaces {s.replacedDriver}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="flex-1 font-medium">
+                        {s.name}
+                        <span className="text-zinc-500 font-mono text-xs ml-2">{s.code}</span>
+                      </span>
+                    )}
+                    <button
+                      onClick={() => togglePlayer(i)}
+                      className={
+                        s.isPlayer
+                          ? "btn-ghost text-xs"
+                          : "btn text-xs bg-f1-red/20 text-f1-red border border-f1-red/40 hover:bg-f1-red/30"
+                      }
+                    >
+                      {s.isPlayer ? "Revert" : "Make player"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {error && <p className="text-f1-red text-sm mt-4">{error}</p>}
+
+      <div className="sticky bottom-0 mt-6 -mx-4 px-4 py-3 bg-f1-dark/90 backdrop-blur border-t border-f1-line flex justify-end gap-3">
+        <button className="btn-ghost" onClick={() => nav("/")} disabled={saving}>
+          Cancel
+        </button>
+        <button className="btn-primary" onClick={create} disabled={saving}>
+          {saving ? "Creating…" : "Create career"}
+        </button>
+      </div>
+    </div>
+  );
+}

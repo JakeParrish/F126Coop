@@ -1,0 +1,26 @@
+{
+  "name": "f1coopsim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Co-op F1 26 (2026 regulations) career-mode tracker",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm --workspace server run dev",
+    "dev:client": "npm --workspace client run dev",
+    "build": "npm --workspace client run build && npm --workspace server run build",
+    "start": "npm --workspace server run db:push && npm --workspace server run seed:prod && npm --workspace server run start",
+    "postinstall": "npm --workspace server run prisma:generate",
+    "db:push": "npm --workspace server run db:push",
+    "db:seed": "npm --workspace server run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
