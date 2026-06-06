@@ -146,9 +146,9 @@ function Podium({ podium, race }: { podium: (Entrant | undefined)[]; race: Race 
           </div>
           <div className="flex items-center gap-1.5 px-1.5 py-1.5 min-w-0">
             {p ? (
-              <Avatar name={p.name} code={p.code} teamColor={p.team.color} imageUrl={p.imageUrl} size={24} />
+              <Avatar name={p.name} code={p.code} teamColor={p.team.color} imageUrl={p.imageUrl} size={30} />
             ) : (
-              <span className="w-6 h-6 rounded-full bg-f1-line shrink-0" />
+              <span className="w-[30px] h-[30px] rounded-full bg-f1-line shrink-0" />
             )}
             <div className="min-w-0 leading-tight">
               <div className="text-[11px] font-bold truncate">{p?.code ?? "—"}</div>
@@ -194,7 +194,7 @@ function DriverStandings({ standings }: { standings: CareerDetail["standings"] }
                     code={d.code}
                     teamColor={d.teamColor}
                     imageUrl={d.imageUrl}
-                    size={32}
+                    size={40}
                   />
                   <span className="font-semibold">{d.name}</span>
                   <span className="font-mono text-xs text-zinc-500">{d.code}</span>

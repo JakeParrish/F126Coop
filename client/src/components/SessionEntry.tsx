@@ -167,7 +167,7 @@ export default function SessionEntry({
                     code={e.code}
                     teamColor={e.team.color}
                     imageUrl={e.imageUrl}
-                    size={26}
+                    size={32}
                   />
                   <span className="font-medium">{e.name}</span>
                   <span className="font-mono text-xs text-zinc-500">{e.code}</span>

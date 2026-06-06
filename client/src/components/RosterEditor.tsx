@@ -111,7 +111,7 @@ export default function RosterEditor({
                     code={r.code || "?"}
                     teamColor={team.color}
                     imageUrl={r.imageUrl}
-                    size={34}
+                    size={40}
                   />
                   <input
                     className="input flex-1 min-w-[8rem]"
@@ -132,12 +132,14 @@ export default function RosterEditor({
                     value={r.number}
                     onChange={(ev) => set(id, { number: Number(ev.target.value) })}
                   />
-                  <input
-                    className="input w-full sm:flex-1 sm:min-w-[10rem]"
-                    placeholder="Photo URL (optional)"
-                    value={r.imageUrl ?? ""}
-                    onChange={(ev) => set(id, { imageUrl: ev.target.value || null })}
-                  />
+                  {r.isPlayer && (
+                    <input
+                      className="input w-full sm:flex-1 sm:min-w-[10rem]"
+                      placeholder="Photo URL (optional)"
+                      value={r.imageUrl ?? ""}
+                      onChange={(ev) => set(id, { imageUrl: ev.target.value || null })}
+                    />
+                  )}
                   <label className="text-xs text-zinc-400 flex items-center gap-1.5 cursor-pointer select-none">
                     <input
                       type="checkbox"

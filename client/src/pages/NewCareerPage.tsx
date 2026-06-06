@@ -174,7 +174,7 @@ export default function NewCareerPage() {
                       code={s.code || "?"}
                       teamColor={team.color}
                       imageUrl={s.imageUrl}
-                      size={34}
+                      size={40}
                     />
                     {s.isPlayer ? (
                       <>

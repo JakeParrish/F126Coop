@@ -70,7 +70,7 @@ export default function RaceAwards({
                     code={sel.code}
                     teamColor={sel.team.color}
                     imageUrl={sel.imageUrl}
-                    size={28}
+                    size={34}
                   />
                   <span className="font-semibold text-sm">{sel.name}</span>
                   <span className="font-mono text-xs text-zinc-500">{sel.code}</span>

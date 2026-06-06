@@ -10,6 +10,11 @@ body,
   height: 100%;
 }
 
+/* Scale the whole UI up a touch (rem-based sizing follows this). */
+html {
+  font-size: 17px;
+}
+
 body {
   @apply bg-f1-dark text-zinc-100 font-sans antialiased;
 }
