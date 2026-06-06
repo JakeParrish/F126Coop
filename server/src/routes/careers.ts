@@ -7,6 +7,28 @@ import { computeStandings } from "../standings.js";
 
 export const careersRouter = Router();
 
+// Build a URL-safe slug from a career name, guaranteed unique by suffixing.
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "career"
+  );
+}
+
+async function uniqueSlug(name: string): Promise<string> {
+  const base = slugify(name);
+  let slug = base;
+  let n = 2;
+  while (await prisma.career.findUnique({ where: { slug } })) {
+    slug = `${base}-${n++}`;
+  }
+  return slug;
+}
+
 // --- validation schemas -----------------------------------------------------
 
 const entrantInput = z.object({
@@ -57,6 +79,7 @@ careersRouter.get("/careers", async (_req, res) => {
 
   const summary = careers.map((c) => ({
     id: c.id,
+    slug: c.slug,
     name: c.name,
     seasonYear: c.seasonYear,
     createdAt: c.createdAt,
@@ -94,6 +117,7 @@ careersRouter.post("/careers", async (req, res) => {
   const career = await prisma.career.create({
     data: {
       name,
+      slug: await uniqueSlug(name),
       seasonYear,
       entrants: {
         create: entrants.map((e, i) => ({
@@ -119,13 +143,14 @@ careersRouter.post("/careers", async (req, res) => {
     },
   });
 
-  res.status(201).json({ id: career.id });
+  res.status(201).json({ id: career.id, slug: career.slug });
 });
 
 // Full career detail: grid, calendar (with results), and standings.
 careersRouter.get("/careers/:id", async (req, res) => {
-  const career = await prisma.career.findUnique({
-    where: { id: req.params.id },
+  const key = req.params.id;
+  const career = await prisma.career.findFirst({
+    where: { OR: [{ slug: key }, { id: key }] },
     include: {
       entrants: { orderBy: { order: "asc" }, include: { team: true } },
       races: {

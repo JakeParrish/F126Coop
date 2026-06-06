@@ -1,31 +1,33 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type CareerDetail, type Race } from "../api";
+import { api, type CareerDetail, type Race, type Session } from "../api";
+import SessionEntry from "../components/SessionEntry";
 
 type Tab = "calendar" | "drivers" | "constructors";
 
 export default function CareerPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [data, setData] = useState<CareerDetail | null>(null);
   const [tab, setTab] = useState<Tab>("calendar");
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!id) return;
+    if (!slug) return;
     try {
-      setData(await api.getCareer(id));
+      setData(await api.getCareer(slug));
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [id]);
+  }, [slug]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   async function toggleSprint(race: Race) {
-    if (!id) return;
-    await api.editRace(id, race.id, { isSprint: !race.isSprint });
+    if (!data) return;
+    // Mutations target the career's real id, not the URL slug.
+    await api.editRace(data.career.id, race.id, { isSprint: !race.isSprint });
     load();
   }
 
@@ -62,7 +64,7 @@ export default function CareerPage() {
       </div>
 
       {tab === "calendar" && (
-        <Calendar career={career} onToggleSprint={toggleSprint} />
+        <Calendar career={career} onToggleSprint={toggleSprint} onSaved={load} />
       )}
       {tab === "drivers" && <DriverStandings standings={standings} />}
       {tab === "constructors" && <ConstructorStandings standings={standings} />}
@@ -73,60 +75,129 @@ export default function CareerPage() {
 function Calendar({
   career,
   onToggleSprint,
+  onSaved,
 }: {
   career: CareerDetail["career"];
   onToggleSprint: (race: Race) => void;
+  onSaved: () => Promise<void>;
 }) {
+  // Which race's inline editor is open (by round; null = all collapsed).
+  const [openRound, setOpenRound] = useState<number | null>(null);
+
   return (
     <div className="space-y-2">
       {career.races.map((r) => {
         const done = r.status === "COMPLETED";
+        const open = openRound === r.round;
         return (
-          <div
-            key={r.id}
-            className="panel px-4 py-3 flex flex-wrap items-center gap-3"
-          >
-            <span className="w-8 text-center font-mono text-zinc-500 text-sm">{r.round}</span>
-            <div className="flex-1 min-w-[12rem]">
-              <div className="font-semibold flex items-center gap-2">
-                {r.name}
-                {r.isSprint && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">
-                    SPRINT
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-zinc-500">
-                {r.circuit} · {r.date}
-              </div>
-            </div>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full ${
-                done
-                  ? "bg-green-500/15 text-green-400 border border-green-500/30"
-                  : "bg-f1-line text-zinc-400"
-              }`}
+          <div key={r.id} className="panel overflow-hidden">
+            <button
+              onClick={() => setOpenRound(open ? null : r.round)}
+              className="w-full text-left px-4 py-3 flex flex-wrap items-center gap-3 hover:bg-f1-line/20 transition-colors"
             >
-              {done ? "Completed" : "Upcoming"}
-            </span>
-            <label className="text-xs text-zinc-400 flex items-center gap-1.5 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={r.isSprint}
-                onChange={() => onToggleSprint(r)}
-                className="accent-yellow-500"
-              />
-              Sprint
-            </label>
-            <Link
-              to={`/career/${career.id}/race/${r.id}`}
-              className="btn-ghost text-xs"
-            >
-              {done ? "Edit results" : "Enter results"}
-            </Link>
+              <span className="w-8 text-center font-mono text-zinc-500 text-sm">{r.round}</span>
+              <div className="flex-1 min-w-[12rem]">
+                <div className="font-semibold flex items-center gap-2">
+                  {r.name}
+                  {r.isSprint && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">
+                      SPRINT
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-zinc-500">
+                  {r.circuit} · {r.date}
+                </div>
+              </div>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${
+                  done
+                    ? "bg-green-500/15 text-green-400 border border-green-500/30"
+                    : "bg-f1-line text-zinc-400"
+                }`}
+              >
+                {done ? "Completed" : "Upcoming"}
+              </span>
+              <span className="text-zinc-500 text-xs w-4 text-center">{open ? "▲" : "▼"}</span>
+            </button>
+
+            {open && (
+              <div className="border-t border-f1-line p-4">
+                <RacePanel
+                  career={career}
+                  race={r}
+                  onToggleSprint={onToggleSprint}
+                  onSaved={onSaved}
+                  onClose={() => setOpenRound(null)}
+                />
+              </div>
+            )}
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// Inline editor shown when a calendar row is expanded: sprint toggle, a
+// session switch for sprint weekends, and the result-entry table.
+function RacePanel({
+  career,
+  race,
+  onToggleSprint,
+  onSaved,
+  onClose,
+}: {
+  career: CareerDetail["career"];
+  race: Race;
+  onToggleSprint: (race: Race) => void;
+  onSaved: () => Promise<void>;
+  onClose: () => void;
+}) {
+  const [session, setSession] = useState<Session>(race.isSprint ? "SPRINT" : "RACE");
+  // A non-sprint race only has a Grand Prix session.
+  const effective: Session = race.isSprint ? session : "RACE";
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="text-xs text-zinc-400 flex items-center gap-1.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={race.isSprint}
+            onChange={() => onToggleSprint(race)}
+            className="accent-yellow-500"
+          />
+          Sprint weekend
+        </label>
+
+        {race.isSprint && (
+          <div className="flex gap-1 bg-f1-dark border border-f1-line rounded-lg p-1">
+            {(["SPRINT", "RACE"] as Session[]).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSession(s)}
+                className={`tab text-xs ${
+                  effective === s ? "bg-f1-red text-white" : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {s === "SPRINT" ? "Sprint" : "Grand Prix"}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <SessionEntry
+        key={effective}
+        careerId={career.id}
+        race={race}
+        session={effective}
+        entrants={career.entrants}
+        onSaved={onSaved}
+        onDone={onClose}
+        doneLabel="Save & close"
+      />
     </div>
   );
 }

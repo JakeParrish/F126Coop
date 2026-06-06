@@ -52,7 +52,7 @@ export default function HomePage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {careers.map((c) => (
             <div key={c.id} className="panel p-4 flex flex-col gap-3">
-              <Link to={`/career/${c.id}`} className="block">
+              <Link to={`/career/${c.slug ?? c.id}`} className="block">
                 <h2 className="font-bold text-lg leading-tight hover:text-f1-red transition-colors">
                   {c.name}
                 </h2>

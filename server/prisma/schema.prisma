@@ -55,6 +55,7 @@ model Driver {
 
 model Career {
   id         String     @id @default(cuid())
+  slug       String?    @unique // human-readable URL key, derived from name
   name       String
   seasonYear Int        @default(2026)
   createdAt  DateTime   @default(now())

@@ -108,8 +108,8 @@ export default function NewCareerPage() {
         isPlayer: s.isPlayer,
         replacedDriver: s.isPlayer ? s.replacedDriver : null,
       }));
-      const { id } = await api.createCareer({ name: name.trim(), entrants });
-      nav(`/career/${id}`);
+      const { id, slug } = await api.createCareer({ name: name.trim(), entrants });
+      nav(`/career/${slug ?? id}`);
     } catch (e) {
       setError((e as Error).message);
       setSaving(false);

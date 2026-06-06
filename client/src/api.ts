@@ -58,6 +58,7 @@ export interface Race {
 
 export interface Career {
   id: string;
+  slug: string | null;
   name: string;
   seasonYear: number;
   createdAt: string;
@@ -95,6 +96,7 @@ export interface Standings {
 
 export interface CareerSummary {
   id: string;
+  slug: string | null;
   name: string;
   seasonYear: number;
   createdAt: string;
@@ -148,7 +150,10 @@ export const api = {
   listCareers: () => req<{ careers: CareerSummary[] }>("/api/careers"),
 
   createCareer: (data: { name: string; seasonYear?: number; entrants: EntrantInput[] }) =>
-    req<{ id: string }>("/api/careers", { method: "POST", body: JSON.stringify(data) }),
+    req<{ id: string; slug: string | null }>("/api/careers", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 
   getCareer: (id: string) => req<CareerDetail>(`/api/careers/${id}`),
 
