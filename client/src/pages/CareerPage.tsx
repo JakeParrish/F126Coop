@@ -208,7 +208,7 @@ function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: 
     >
       <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/5 to-transparent" />
 
-      <div className="absolute top-2 right-2 z-10 text-right text-white bg-black/40 rounded-md px-1.5 py-0.5 backdrop-blur-sm">
+      <div className="absolute top-2 left-2 z-10 text-left text-white bg-black/40 rounded-md px-1.5 py-0.5 backdrop-blur-sm">
         <div className="text-[10px] font-bold opacity-90 leading-none">P{rank}</div>
         <div className="text-base font-extrabold leading-none mt-0.5">
           {d.points}
