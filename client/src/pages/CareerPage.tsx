@@ -3,9 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import { api, type CareerDetail, type Entrant, type Race } from "../api";
 import TrackMap from "../components/TrackMap";
 import Avatar from "../components/Avatar";
-import TeamBadge from "../components/TeamBadge";
+import TeamLogo from "../components/TeamLogo";
 import RosterEditor from "../components/RosterEditor";
-import { flagFor } from "../lib/ui";
+import { flagFor, raceDateRange } from "../lib/ui";
 
 type Tab = "calendar" | "drivers" | "constructors" | "roster";
 
@@ -73,7 +73,7 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
   const slug = career.slug ?? career.id;
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {career.races.map((r) => {
         const done = r.status === "COMPLETED";
         const podium = podiumOf(r, entrantById);
@@ -81,71 +81,42 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
           <Link
             key={r.id}
             to={`/career/${slug}/race/${r.round}`}
-            className="panel p-4 flex flex-col hover:border-f1-red/60 transition-colors"
+            className="panel flex flex-col hover:border-f1-red/60 transition-colors overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono text-xs text-zinc-500">ROUND {r.round}</span>
-              {r.isSprint && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">
-                  SPRINT
+            <div className="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
+              <span className="font-mono text-[11px] text-zinc-500 tracking-widest">
+                ROUND {r.round}
+              </span>
+              <span className="flex items-center gap-2">
+                {r.isSprint && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">
+                    SPRINT
+                  </span>
+                )}
+                <span className="text-[11px] text-zinc-400 font-medium whitespace-nowrap">
+                  🏁 {raceDateRange(r.date)}
                 </span>
-              )}
+              </span>
             </div>
 
-            <div className="h-28 my-1 flex items-center justify-center">
-              <TrackMap
-                round={r.round}
-                color={done ? "#22c55e" : "#9aa0ad"}
-                strokeWidth={20}
-                className="h-full w-full"
-              />
-            </div>
-
-            <div className="mt-1">
-              <div className="font-bold flex items-center gap-2 leading-tight">
+            <div className="px-4">
+              <div className="text-xl font-extrabold flex items-center gap-2 leading-tight">
                 <span>{flagFor(r.country)}</span>
+                {r.country}
+              </div>
+              <div className="text-[11px] text-zinc-500 uppercase tracking-wide mt-0.5">
                 {r.name}
               </div>
-              <div className="text-xs text-zinc-500 mt-0.5">
-                {r.circuit} · {r.date}
-              </div>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-f1-line flex items-center justify-between gap-2">
+            <div className="px-4 py-3 mt-auto">
               {done && podium[0] ? (
-                <div className="flex items-center gap-2 flex-wrap">
-                  {podium.map((p, idx) =>
-                    p ? (
-                      <span
-                        key={idx}
-                        className="flex items-center gap-1"
-                        title={`P${idx + 1} · ${p.name}`}
-                      >
-                        <span className="text-xs">{MEDALS[idx]}</span>
-                        <Avatar
-                          name={p.name}
-                          code={p.code}
-                          teamColor={p.team.color}
-                          imageUrl={p.imageUrl}
-                          size={20}
-                        />
-                        <span className="text-[11px] font-semibold">{p.code}</span>
-                      </span>
-                    ) : null
-                  )}
-                </div>
+                <Podium podium={podium} race={r} />
               ) : (
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${
-                    done
-                      ? "bg-green-500/15 text-green-400 border border-green-500/30"
-                      : "bg-f1-line text-zinc-400"
-                  }`}
-                >
-                  {done ? "Completed" : "Upcoming"}
-                </span>
+                <div className="h-24 flex items-center justify-center">
+                  <TrackMap round={r.round} color="#6b7280" strokeWidth={22} className="h-full w-full" />
+                </div>
               )}
-              <span className="text-zinc-600 text-xs">→</span>
             </div>
           </Link>
         );
@@ -154,7 +125,41 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
   );
 }
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+const MEDALS = ["ST", "ND", "RD"];
+
+// F1-style podium boxes: rank tab, headshot, code, and race points.
+function Podium({ podium, race }: { podium: (Entrant | undefined)[]; race: Race }) {
+  const ptsFor = (id: string) =>
+    race.results.find((x) => x.session === "RACE" && x.entrantId === id)?.points ?? 0;
+
+  return (
+    <div className="flex gap-1.5">
+      {podium.map((p, idx) => (
+        <div
+          key={idx}
+          className="flex-1 min-w-0 border border-f1-line rounded-md flex items-stretch overflow-hidden bg-f1-dark/40"
+          title={p ? `P${idx + 1} · ${p.name}` : undefined}
+        >
+          <div className="bg-f1-line/50 px-1.5 flex flex-col items-center justify-center leading-none">
+            <span className="text-xs font-extrabold">{idx + 1}</span>
+            <span className="text-[7px] font-bold text-zinc-400">{MEDALS[idx]}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-1.5 py-1.5 min-w-0">
+            {p ? (
+              <Avatar name={p.name} code={p.code} teamColor={p.team.color} imageUrl={p.imageUrl} size={24} />
+            ) : (
+              <span className="w-6 h-6 rounded-full bg-f1-line shrink-0" />
+            )}
+            <div className="min-w-0 leading-tight">
+              <div className="text-[11px] font-bold truncate">{p?.code ?? "—"}</div>
+              {p && <div className="text-[9px] text-zinc-500">{ptsFor(p.id)} pts</div>}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // The Grand Prix podium (P1, P2, P3) — entries may be undefined if not entered.
 function podiumOf(race: Race, byId: Map<string, Entrant>): (Entrant | undefined)[] {
@@ -201,7 +206,7 @@ function DriverStandings({ standings }: { standings: CareerDetail["standings"] }
                 </span>
               </td>
               <td className="px-3 py-2 hidden sm:table-cell">
-                <TeamBadge name={d.teamName} color={d.teamColor} />
+                <TeamLogo name={d.teamName} color={d.teamColor} size={20} />
               </td>
               <td className="px-3 py-2 text-center">{d.wins}</td>
               <td className="px-3 py-2 text-center hidden sm:table-cell">{d.podiums}</td>
@@ -227,7 +232,10 @@ function ConstructorStandings({ standings }: { standings: CareerDetail["standing
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="font-bold">{c.teamName}</span>
+              <span className="font-bold flex items-center gap-2">
+                <TeamLogo name={c.teamName} color={c.teamColor} size={22} />
+                {c.teamName}
+              </span>
               <span className="font-bold">{c.points}</span>
             </div>
             <div className="h-1.5 bg-f1-line rounded-full overflow-hidden mt-1.5">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api, type CareerDetail, type Entrant, type Team } from "../api";
 import Avatar from "./Avatar";
+import TeamLogo from "./TeamLogo";
 
 interface Row {
   name: string;
@@ -94,6 +95,7 @@ export default function RosterEditor({
             className="px-4 py-2 flex items-center gap-2 border-b border-f1-line"
             style={{ borderLeft: `4px solid ${team.color}` }}
           >
+            <TeamLogo name={team.name} color={team.color} size={20} />
             <span className="font-bold">{team.name}</span>
             <span className="text-xs text-zinc-500">{team.fullName}</span>
           </div>

@@ -22,7 +22,7 @@ export default function Avatar({
   imageUrl,
   size = 40,
   className = "",
-  objectPosition = "50% 15%",
+  objectPosition = "50% 8%",
 }: Props) {
   const src = (imageUrl && imageUrl.trim()) || `/drivers/${code.toUpperCase()}.png`;
   const [failed, setFailed] = useState(false);
