@@ -1,0 +1,7 @@
+# Force dev dependencies (Vite, TypeScript, Tailwind) to install even when
+# Railway runs the install in production mode, so the build has its tooling.
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+cmds = ["npm run build"]
