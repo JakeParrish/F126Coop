@@ -27,6 +27,18 @@ export function flagFor(country: string): string {
   return FLAGS[country] ?? "🏁";
 }
 
+// Driver nationality by 3-letter code (2026 grid). Custom players have none.
+const NATIONALITY: Record<string, string> = {
+  NOR: "🇬🇧", PIA: "🇦🇺", LEC: "🇲🇨", HAM: "🇬🇧", RUS: "🇬🇧", ANT: "🇮🇹",
+  VER: "🇳🇱", HAD: "🇫🇷", SAI: "🇪🇸", ALB: "🇹🇭", LAW: "🇳🇿", LIN: "🇬🇧",
+  ALO: "🇪🇸", STR: "🇨🇦", OCO: "🇫🇷", BEA: "🇬🇧", HUL: "🇩🇪", BOR: "🇧🇷",
+  GAS: "🇫🇷", COL: "🇦🇷", PER: "🇲🇽", BOT: "🇫🇮",
+};
+
+export function nationalityFlag(code: string): string | null {
+  return NATIONALITY[code.toUpperCase()] ?? null;
+}
+
 // Race weekend range (Fri–Sun) from the stored Sunday date, e.g. "06–08 MAR".
 export function raceDateRange(iso: string | null): string {
   if (!iso) return "";

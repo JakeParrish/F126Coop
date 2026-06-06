@@ -52,13 +52,25 @@ export default function RosterEditor({
     setSavingId(id);
     setError(null);
     try {
-      await api.updateEntrant(career.id, id, {
+      const { entrant } = await api.updateEntrant(career.id, id, {
         name: r.name.trim(),
         code: r.code.trim().toUpperCase(),
         number: r.number,
         imageUrl: r.imageUrl && r.imageUrl.trim() ? r.imageUrl.trim() : null,
         isPlayer: r.isPlayer,
       });
+      // Sync the row from the server response (e.g. a reverted player is
+      // restored to the original driver's name/code/number/photo).
+      setRows((prev) => ({
+        ...prev,
+        [id]: {
+          name: entrant.name,
+          code: entrant.code,
+          number: entrant.number,
+          imageUrl: entrant.imageUrl,
+          isPlayer: entrant.isPlayer,
+        },
+      }));
       setSavedId(id);
       await onSaved();
     } catch (e) {

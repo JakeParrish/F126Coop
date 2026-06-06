@@ -61,7 +61,9 @@ export default function CareerPage() {
       </div>
 
       {tab === "calendar" && <Calendar career={career} />}
-      {tab === "drivers" && <DriverStandings standings={standings} />}
+      {tab === "drivers" && (
+        <DriverStandings standings={standings} slug={career.slug ?? career.id} />
+      )}
       {tab === "constructors" && <ConstructorStandings standings={standings} />}
       {tab === "roster" && <RosterEditor career={career} onSaved={load} />}
     </div>
@@ -169,7 +171,13 @@ function podiumOf(race: Race, byId: Map<string, Entrant>): (Entrant | undefined)
   });
 }
 
-function DriverStandings({ standings }: { standings: CareerDetail["standings"] }) {
+function DriverStandings({
+  standings,
+  slug,
+}: {
+  standings: CareerDetail["standings"];
+  slug: string;
+}) {
   return (
     <div className="panel overflow-hidden">
       <table className="w-full text-sm">
@@ -185,10 +193,16 @@ function DriverStandings({ standings }: { standings: CareerDetail["standings"] }
         </thead>
         <tbody>
           {standings.drivers.map((d, i) => (
-            <tr key={d.entrantId} className="border-b border-f1-line/60 last:border-0">
+            <tr
+              key={d.entrantId}
+              className="border-b border-f1-line/60 last:border-0 hover:bg-f1-line/20"
+            >
               <td className="px-3 py-2 font-mono text-zinc-500">{i + 1}</td>
               <td className="px-3 py-2">
-                <span className="inline-flex items-center gap-2.5">
+                <Link
+                  to={`/career/${slug}/driver/${d.entrantId}`}
+                  className="inline-flex items-center gap-2.5 hover:text-f1-red"
+                >
                   <Avatar
                     name={d.name}
                     code={d.code}
@@ -203,7 +217,7 @@ function DriverStandings({ standings }: { standings: CareerDetail["standings"] }
                       YOU
                     </span>
                   )}
-                </span>
+                </Link>
               </td>
               <td className="px-3 py-2 hidden sm:table-cell">
                 <TeamLogo name={d.teamName} color={d.teamColor} size={20} />

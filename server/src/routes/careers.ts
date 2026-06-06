@@ -299,23 +299,41 @@ careersRouter.patch("/careers/:id/entrants/:entrantId", async (req, res) => {
   });
   if (!entrant) return res.status(404).json({ error: "Seat not found." });
 
-  // Car numbers stay unique across the grid.
-  if (parsed.data.number !== undefined) {
-    const clash = await prisma.entrant.findFirst({
-      where: { careerId: req.params.id, number: parsed.data.number, id: { not: entrant.id } },
-    });
-    if (clash) {
-      return res.status(400).json({ error: `Car #${parsed.data.number} is already used by ${clash.name}.` });
+  const changes: {
+    name?: string;
+    code?: string;
+    number?: number;
+    isPlayer?: boolean;
+    imageUrl?: string | null;
+    replacedDriver?: string | null;
+  } = {
+    ...parsed.data,
+    code: parsed.data.code ? parsed.data.code.toUpperCase() : undefined,
+  };
+
+  // Unchecking "player" restores the real driver this seat replaced.
+  if (parsed.data.isPlayer === false && entrant.isPlayer && entrant.replacedDriver) {
+    const original = await prisma.driver.findFirst({ where: { name: entrant.replacedDriver } });
+    if (original) {
+      changes.name = original.name;
+      changes.code = original.code;
+      changes.number = original.number;
+      changes.imageUrl = original.imageUrl;
+      changes.replacedDriver = null;
     }
   }
 
-  const updated = await prisma.entrant.update({
-    where: { id: entrant.id },
-    data: {
-      ...parsed.data,
-      code: parsed.data.code ? parsed.data.code.toUpperCase() : undefined,
-    },
-  });
+  // Car numbers stay unique across the grid (check the effective number).
+  if (changes.number !== undefined) {
+    const clash = await prisma.entrant.findFirst({
+      where: { careerId: req.params.id, number: changes.number, id: { not: entrant.id } },
+    });
+    if (clash) {
+      return res.status(400).json({ error: `Car #${changes.number} is already used by ${clash.name}.` });
+    }
+  }
+
+  const updated = await prisma.entrant.update({ where: { id: entrant.id }, data: changes });
   await prisma.career.update({ where: { id: req.params.id }, data: {} }); // bump updatedAt
   res.json({ entrant: updated });
 });

@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage";
 import NewCareerPage from "./pages/NewCareerPage";
 import CareerPage from "./pages/CareerPage";
 import RaceResultsPage from "./pages/RaceResultsPage";
+import DriverPage from "./pages/DriverPage";
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
       { path: "new", element: <NewCareerPage /> },
       { path: "career/:slug", element: <CareerPage /> },
       { path: "career/:slug/race/:round", element: <RaceResultsPage /> },
+      { path: "career/:slug/driver/:entrantId", element: <DriverPage /> },
     ],
   },
 ]);
