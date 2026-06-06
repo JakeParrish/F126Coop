@@ -98,6 +98,12 @@ model Race {
   status    RaceStatus @default(UPCOMING)
   results   Result[]
 
+  // Fun, non-scoring awards. Each holds an Entrant id (or null).
+  driverOfDayId   String?
+  mostOvertakesId String?
+  cleanestId      String?
+  fastestLapId    String?
+
   @@unique([careerId, round])
   @@index([careerId])
 }
