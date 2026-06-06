@@ -84,6 +84,13 @@ careersRouter.post("/careers", async (req, res) => {
     return res.status(400).json({ error: "One or more teamIds are invalid." });
   }
 
+  // Car numbers must be unique across the grid (a player keeps the number of the
+  // driver they replaced, so a simple uniqueness check enforces the rule).
+  const numbers = entrants.map((e) => e.number);
+  if (new Set(numbers).size !== numbers.length) {
+    return res.status(400).json({ error: "Car numbers must be unique across the grid." });
+  }
+
   const career = await prisma.career.create({
     data: {
       name,

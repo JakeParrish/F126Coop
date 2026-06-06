@@ -45,6 +45,17 @@ export default function NewCareerPage() {
 
   const playerCount = seats.filter((s) => s.isPlayer).length;
 
+  // Car numbers must stay unique across the grid. A player keeps the number of
+  // the driver they replaced (that seat no longer exists), but can't take a
+  // number that another active driver is still using.
+  const numberCounts = new Map<number, number>();
+  for (const s of seats) numberCounts.set(s.number, (numberCounts.get(s.number) ?? 0) + 1);
+  const dupNumbers = new Set(
+    [...numberCounts.entries()].filter(([, n]) => n > 1).map(([num]) => num)
+  );
+  const nameForNumber = (num: number, exceptIdx: number) =>
+    seats.find((s, i) => i !== exceptIdx && s.number === num)?.name ?? `#${num}`;
+
   function update(i: number, patch: Partial<Seat>) {
     setSeats((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
   }
@@ -83,6 +94,9 @@ export default function NewCareerPage() {
       if (!s.name.trim() || !s.code.trim()) {
         return setError("Every seat needs a name and a 3-letter code.");
       }
+    }
+    if (dupNumbers.size > 0) {
+      return setError("Two drivers share a car number — give each a unique number.");
     }
     setSaving(true);
     try {
@@ -167,13 +181,21 @@ export default function NewCareerPage() {
                           onChange={(e) => update(i, { code: e.target.value.toUpperCase() })}
                         />
                         <input
-                          className="input w-20"
+                          className={`input w-20 ${
+                            dupNumbers.has(s.number) ? "border-f1-red text-f1-red" : ""
+                          }`}
                           type="number"
                           value={s.number}
                           onChange={(e) => update(i, { number: Number(e.target.value) })}
                         />
-                        <span className="text-xs text-zinc-500 w-full sm:w-auto">
-                          replaces {s.replacedDriver}
+                        <span className="text-xs w-full sm:w-auto">
+                          {dupNumbers.has(s.number) ? (
+                            <span className="text-f1-red">
+                              #{s.number} is taken by {nameForNumber(s.number, i)}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-500">replaces {s.replacedDriver}</span>
+                          )}
                         </span>
                       </>
                     ) : (
@@ -206,7 +228,11 @@ export default function NewCareerPage() {
         <button className="btn-ghost" onClick={() => nav("/")} disabled={saving}>
           Cancel
         </button>
-        <button className="btn-primary" onClick={create} disabled={saving}>
+        <button
+          className="btn-primary"
+          onClick={create}
+          disabled={saving || dupNumbers.size > 0}
+        >
           {saving ? "Creating…" : "Create career"}
         </button>
       </div>
