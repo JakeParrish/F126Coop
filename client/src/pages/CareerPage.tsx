@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type CareerDetail, type Entrant, type Race } from "../api";
+import { api, type CareerDetail, type Entrant, type Race, type Session } from "../api";
 import TrackMap from "../components/TrackMap";
 import Avatar from "../components/Avatar";
 import TeamLogo from "../components/TeamLogo";
@@ -84,8 +84,10 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {career.races.map((r) => {
-        const done = r.status === "COMPLETED";
-        const podium = podiumOf(r, entrantById);
+        const hasRace = r.results.some((x) => x.session === "RACE");
+        const hasSprint = r.isSprint && r.results.some((x) => x.session === "SPRINT");
+        const racePodium = podiumOf(r, entrantById, "RACE");
+        const sprintPodium = podiumOf(r, entrantById, "SPRINT");
         return (
           <Link
             key={r.id}
@@ -119,8 +121,27 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
             </div>
 
             <div className="px-4 py-3 mt-auto">
-              {done && podium[0] ? (
-                <Podium podium={podium} race={r} />
+              {hasSprint || hasRace ? (
+                <div className="space-y-2">
+                  {hasSprint && (
+                    <div>
+                      <div className="text-[9px] font-bold tracking-wide text-yellow-400 mb-1">
+                        SPRINT
+                      </div>
+                      <Podium podium={sprintPodium} race={r} session="SPRINT" />
+                    </div>
+                  )}
+                  {hasRace && (
+                    <div>
+                      {r.isSprint && (
+                        <div className="text-[9px] font-bold tracking-wide text-zinc-500 mb-1">
+                          GRAND PRIX
+                        </div>
+                      )}
+                      <Podium podium={racePodium} race={r} session="RACE" />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="h-24 flex items-center justify-center">
                   <TrackMap round={r.round} color="#6b7280" strokeWidth={22} className="h-full w-full" />
@@ -136,10 +157,18 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
 
 const MEDALS = ["ST", "ND", "RD"];
 
-// F1-style podium boxes: rank tab, headshot, code, and race points.
-function Podium({ podium, race }: { podium: (Entrant | undefined)[]; race: Race }) {
+// F1-style podium boxes: rank tab, headshot, code, and points for the session.
+function Podium({
+  podium,
+  race,
+  session,
+}: {
+  podium: (Entrant | undefined)[];
+  race: Race;
+  session: Session;
+}) {
   const ptsFor = (id: string) =>
-    race.results.find((x) => x.session === "RACE" && x.entrantId === id)?.points ?? 0;
+    race.results.find((x) => x.session === session && x.entrantId === id)?.points ?? 0;
 
   return (
     <div className="flex gap-1.5">
@@ -170,10 +199,16 @@ function Podium({ podium, race }: { podium: (Entrant | undefined)[]; race: Race 
   );
 }
 
-// The Grand Prix podium (P1, P2, P3) — entries may be undefined if not entered.
-function podiumOf(race: Race, byId: Map<string, Entrant>): (Entrant | undefined)[] {
+// Podium (P1, P2, P3) for a session — entries may be undefined if not entered.
+function podiumOf(
+  race: Race,
+  byId: Map<string, Entrant>,
+  session: Session
+): (Entrant | undefined)[] {
   return [1, 2, 3].map((pos) => {
-    const r = race.results.find((x) => x.session === "RACE" && x.position === pos && !x.dnf);
+    const r = race.results.find(
+      (x) => x.session === session && x.position === pos && !x.dnf
+    );
     return r ? byId.get(r.entrantId) : undefined;
   });
 }
