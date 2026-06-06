@@ -4,16 +4,21 @@ import { api, type CareerDetail, type Entrant, type Race } from "../api";
 import TrackMap from "../components/TrackMap";
 import Avatar from "../components/Avatar";
 import TeamLogo from "../components/TeamLogo";
+import DriverPortrait from "../components/DriverPortrait";
 import RosterEditor from "../components/RosterEditor";
-import { flagFor, raceDateRange } from "../lib/ui";
+import { driverKey, flagFor, nationalityFlag, raceDateRange } from "../lib/ui";
+import type { DriverStanding } from "../api";
 
-type Tab = "calendar" | "drivers" | "constructors" | "roster";
+const TABS = ["calendar", "drivers", "constructors", "roster"] as const;
+type Tab = (typeof TABS)[number];
 
 export default function CareerPage() {
-  const { slug } = useParams();
+  const { slug, tab: tabParam } = useParams();
   const [data, setData] = useState<CareerDetail | null>(null);
-  const [tab, setTab] = useState<Tab>("calendar");
   const [error, setError] = useState<string | null>(null);
+
+  const lower = (tabParam ?? "").toLowerCase();
+  const tab: Tab = (TABS as readonly string[]).includes(lower) ? (lower as Tab) : "calendar";
 
   const load = useCallback(async () => {
     if (!slug) return;
@@ -49,14 +54,14 @@ export default function CareerPage() {
       </div>
 
       <div className="flex gap-1 mb-5 bg-f1-panel border border-f1-line rounded-xl p-1 w-fit">
-        {(["calendar", "drivers", "constructors", "roster"] as Tab[]).map((t) => (
-          <button
+        {TABS.map((t) => (
+          <Link
             key={t}
-            onClick={() => setTab(t)}
+            to={`/career/${slug}/${t}`}
             className={`tab capitalize ${tab === t ? "bg-f1-red text-white" : "text-zinc-400 hover:text-white"}`}
           >
             {t}
-          </button>
+          </Link>
         ))}
       </div>
 
@@ -179,57 +184,60 @@ function DriverStandings({
   slug: string;
 }) {
   return (
-    <div className="panel overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="text-left text-xs uppercase text-zinc-500 border-b border-f1-line">
-          <tr>
-            <th className="px-3 py-2 w-10">#</th>
-            <th className="px-3 py-2">Driver</th>
-            <th className="px-3 py-2 hidden sm:table-cell">Team</th>
-            <th className="px-3 py-2 text-center">Wins</th>
-            <th className="px-3 py-2 text-center hidden sm:table-cell">Podiums</th>
-            <th className="px-3 py-2 text-right">Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {standings.drivers.map((d, i) => (
-            <tr
-              key={d.entrantId}
-              className="border-b border-f1-line/60 last:border-0 hover:bg-f1-line/20"
-            >
-              <td className="px-3 py-2 font-mono text-zinc-500">{i + 1}</td>
-              <td className="px-3 py-2">
-                <Link
-                  to={`/career/${slug}/driver/${d.entrantId}`}
-                  className="inline-flex items-center gap-2.5 hover:text-f1-red"
-                >
-                  <Avatar
-                    name={d.name}
-                    code={d.code}
-                    teamColor={d.teamColor}
-                    imageUrl={d.imageUrl}
-                    size={40}
-                  />
-                  <span className="font-semibold">{d.name}</span>
-                  <span className="font-mono text-xs text-zinc-500">{d.code}</span>
-                  {d.isPlayer && (
-                    <span className="text-[10px] font-bold px-1 rounded bg-f1-red/20 text-f1-red">
-                      YOU
-                    </span>
-                  )}
-                </Link>
-              </td>
-              <td className="px-3 py-2 hidden sm:table-cell">
-                <TeamLogo name={d.teamName} color={d.teamColor} size={20} />
-              </td>
-              <td className="px-3 py-2 text-center">{d.wins}</td>
-              <td className="px-3 py-2 text-center hidden sm:table-cell">{d.podiums}</td>
-              <td className="px-3 py-2 text-right font-bold">{d.points}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {standings.drivers.map((d, i) => (
+        <DriverCard key={d.entrantId} d={d} rank={i + 1} slug={slug} />
+      ))}
     </div>
+  );
+}
+
+// F1.com-style driver card: team-colour gradient, name, number, flag, headshot.
+function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: string }) {
+  const color = d.teamColor;
+  const [first, ...rest] = d.name.split(" ");
+  const last = rest.join(" ");
+  const nat = nationalityFlag(d.code);
+
+  return (
+    <Link
+      to={`/career/${slug}/driver/${driverKey(d.name)}`}
+      className="relative rounded-xl overflow-hidden border border-f1-line hover:border-white/30 transition-colors"
+      style={{ background: `linear-gradient(105deg, ${color} 0%, ${color}cc 42%, #0B0B0F 96%)` }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/5 to-transparent" />
+
+      <div className="absolute top-2 right-2 text-right text-white drop-shadow">
+        <div className="text-[10px] font-bold opacity-90">P{rank}</div>
+        <div className="text-base font-extrabold leading-none">
+          {d.points}
+          <span className="text-[9px] font-semibold opacity-80 ml-0.5">PTS</span>
+        </div>
+      </div>
+
+      <div className="relative flex items-end justify-between gap-1 px-3 pt-3 h-36">
+        <div className="text-white drop-shadow pb-1">
+          <div className="text-sm font-light leading-none">{first}</div>
+          <div className="text-xl font-extrabold leading-tight">{last || first}</div>
+          <div className="text-[11px] opacity-90 mt-0.5">{d.teamName}</div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-2xl font-extrabold italic">{d.number}</span>
+            {nat && <span className="text-lg leading-none">{nat}</span>}
+            {d.isPlayer && (
+              <span className="text-[9px] font-bold px-1 rounded bg-white/20">YOU</span>
+            )}
+          </div>
+        </div>
+        <DriverPortrait
+          name={d.name}
+          code={d.code}
+          teamColor={color}
+          imageUrl={d.imageUrl}
+          height={132}
+          className="self-end max-w-[48%]"
+        />
+      </div>
+    </Link>
   );
 }
 

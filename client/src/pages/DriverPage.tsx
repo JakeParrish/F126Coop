@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type CareerDetail, type Entrant } from "../api";
-import Avatar from "../components/Avatar";
+import { api, type CareerDetail } from "../api";
 import TeamLogo from "../components/TeamLogo";
-import { flagFor, nationalityFlag } from "../lib/ui";
+import DriverPortrait from "../components/DriverPortrait";
+import { driverKey, flagFor, nationalityFlag } from "../lib/ui";
 
 export default function DriverPage() {
-  const { slug, entrantId } = useParams();
+  const { slug, name: nameParam } = useParams();
   const [data, setData] = useState<CareerDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +23,11 @@ export default function DriverPage() {
   if (!data) return <p className="text-zinc-500">Loading…</p>;
 
   const { career, standings } = data;
-  const entrant = career.entrants.find((e) => e.id === entrantId);
+  // Match by name key (e.g. "MaxVerstappen"); fall back to id for old links.
+  const key = (nameParam ?? "").toLowerCase();
+  const entrant =
+    career.entrants.find((e) => driverKey(e.name).toLowerCase() === key) ??
+    career.entrants.find((e) => e.id === nameParam);
   if (!entrant) return <p className="text-zinc-500">Driver not found in this career.</p>;
 
   const backTo = `/career/${career.slug ?? career.id}`;
@@ -73,7 +77,14 @@ export default function DriverPage() {
               )}
             </div>
           </div>
-          <Portrait entrant={entrant} />
+          <DriverPortrait
+            name={entrant.name}
+            code={entrant.code}
+            teamColor={color}
+            imageUrl={entrant.imageUrl}
+            height={210}
+            className="self-end hidden sm:block"
+          />
         </div>
       </div>
 
@@ -159,32 +170,5 @@ function Stat({ label, value }: { label: string; value: string | number }) {
       <div className="text-[11px] uppercase tracking-wide text-zinc-500">{label}</div>
       <div className="text-2xl font-extrabold mt-0.5">{value}</div>
     </div>
-  );
-}
-
-// Full headshot for the card; falls back to a large monogram on error.
-function Portrait({ entrant }: { entrant: Entrant }) {
-  const src = (entrant.imageUrl && entrant.imageUrl.trim()) || `/drivers/${entrant.code.toUpperCase()}.png`;
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
-
-  if (failed) {
-    return (
-      <Avatar
-        name={entrant.name}
-        code={entrant.code}
-        teamColor={entrant.team.color}
-        imageUrl={null}
-        size={150}
-      />
-    );
-  }
-  return (
-    <img
-      src={src}
-      alt={entrant.name}
-      onError={() => setFailed(true)}
-      className="h-[210px] w-auto object-contain object-bottom self-end hidden sm:block"
-    />
   );
 }

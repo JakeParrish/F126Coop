@@ -18,7 +18,8 @@ const router = createBrowserRouter([
       { path: "new", element: <NewCareerPage /> },
       { path: "career/:slug", element: <CareerPage /> },
       { path: "career/:slug/race/:round", element: <RaceResultsPage /> },
-      { path: "career/:slug/driver/:entrantId", element: <DriverPage /> },
+      { path: "career/:slug/driver/:name", element: <DriverPage /> },
+      { path: "career/:slug/:tab", element: <CareerPage /> },
     ],
   },
 ]);

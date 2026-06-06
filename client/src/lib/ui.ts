@@ -39,6 +39,11 @@ export function nationalityFlag(code: string): string | null {
   return NATIONALITY[code.toUpperCase()] ?? null;
 }
 
+// URL key for a driver, e.g. "Max Verstappen" -> "MaxVerstappen".
+export function driverKey(name: string): string {
+  return name.replace(/[^a-zA-Z0-9]/g, "");
+}
+
 // Race weekend range (Fri–Sun) from the stored Sunday date, e.g. "06–08 MAR".
 export function raceDateRange(iso: string | null): string {
   if (!iso) return "";
