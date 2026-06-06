@@ -19,7 +19,17 @@ export const authRouter = Router();
 
 // Whether Discord login is available (so the UI can show/hide the button).
 authRouter.get("/auth/status", (_req, res) => {
-  res.json({ enabled: discordConfigured() });
+  res.json({
+    enabled: discordConfigured(),
+    // Non-sensitive diagnostics (booleans only; redirect URI is a public URL).
+    config: {
+      clientId: Boolean(process.env.DISCORD_CLIENT_ID),
+      clientSecret: Boolean(process.env.DISCORD_CLIENT_SECRET),
+      redirectUri: process.env.DISCORD_REDIRECT_URI || null,
+      jwtSecret: Boolean(process.env.JWT_SECRET),
+      nodeEnv: process.env.NODE_ENV || null,
+    },
+  });
 });
 
 // Kick off the OAuth flow.
