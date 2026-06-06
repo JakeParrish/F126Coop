@@ -245,6 +245,12 @@ careersRouter.put("/careers/:id/races/:raceId/results", requireAuth, async (req,
     return res.status(400).json({ error: "Duplicate finishing positions are not allowed." });
   }
 
+  // Require every driver to be classified (a position or DNF).
+  const classifiedCount = results.filter((r) => r.dnf || r.position != null).length;
+  if (classifiedCount !== entrants.length) {
+    return res.status(400).json({ error: "Every driver must have a position or DNF." });
+  }
+
   await prisma.$transaction(async (tx) => {
     await tx.result.deleteMany({ where: { raceId: race.id, session } });
     await tx.result.createMany({

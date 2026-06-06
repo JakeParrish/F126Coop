@@ -73,6 +73,13 @@ export default function SessionEntry({
 
   const hasDup = dupPositions.size > 0;
 
+  // Every driver must have a position or be marked DNF before saving.
+  const unclassified = entrants.filter((e) => {
+    const r = rows[e.id];
+    return !r?.dnf && !r?.position;
+  });
+  const allClassified = unclassified.length === 0;
+
   // Display order, frozen to the SAVED state (not live edits) so rows don't
   // jump around while you're typing/clicking: classified 1..N, then unfilled
   // (grid order), then DNFs at the bottom. Re-sorts only after a save.
@@ -92,6 +99,7 @@ export default function SessionEntry({
   async function save(thenDone: boolean) {
     setError(null);
     if (hasDup) return setError("Two drivers share a finishing position.");
+    if (!allClassified) return setError("Every driver needs a position or DNF.");
     setSaving(true);
     try {
       const results: ResultRowInput[] = entrants
@@ -200,6 +208,13 @@ export default function SessionEntry({
           Two or more drivers share a finishing position — fix the highlighted positions to save.
         </p>
       )}
+      {!allClassified && (
+        <p className="text-amber-400 text-sm mt-3">
+          {unclassified.length} driver{unclassified.length > 1 ? "s" : ""} need a position or DNF:{" "}
+          {unclassified.slice(0, 14).map((e) => e.code).join(", ")}
+          {unclassified.length > 14 ? "…" : ""}
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <button className="btn-ghost" onClick={clear} disabled={saving}>
@@ -209,12 +224,16 @@ export default function SessionEntry({
           <button
             className={onDone ? "btn-ghost" : "btn-primary"}
             onClick={() => save(false)}
-            disabled={saving || hasDup}
+            disabled={saving || hasDup || !allClassified}
           >
             {saving ? "Saving…" : "Save"}
           </button>
           {onDone && (
-            <button className="btn-primary" onClick={() => save(true)} disabled={saving || hasDup}>
+            <button
+              className="btn-primary"
+              onClick={() => save(true)}
+              disabled={saving || hasDup || !allClassified}
+            >
               {doneLabel}
             </button>
           )}
