@@ -9,6 +9,7 @@ interface Props {
   size?: number; // pixels
   className?: string;
   objectPosition?: string; // crop focus; defaults to faces (upper portion)
+  useConvention?: boolean; // try /drivers/<CODE>.png when no imageUrl (real drivers only)
 }
 
 // A driver headshot. Resolves an image in priority order:
@@ -23,8 +24,10 @@ export default function Avatar({
   size = 40,
   className = "",
   objectPosition = "50% 2%",
+  useConvention = true,
 }: Props) {
-  const src = (imageUrl && imageUrl.trim()) || `/drivers/${code.toUpperCase()}.png`;
+  const explicit = imageUrl && imageUrl.trim() ? imageUrl.trim() : null;
+  const src = explicit || (useConvention ? `/drivers/${code.toUpperCase()}.png` : null);
   const [failed, setFailed] = useState(false);
 
   // Reset the error state if the resolved image source changes.
@@ -32,7 +35,7 @@ export default function Avatar({
 
   const dim = { width: size, height: size, minWidth: size };
 
-  if (failed) {
+  if (failed || !src) {
     return (
       <div
         style={{ ...dim, background: teamColor, color: readableText(teamColor) }}

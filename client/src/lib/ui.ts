@@ -44,6 +44,16 @@ export function driverKey(name: string): string {
   return name.replace(/[^a-zA-Z0-9]/g, "");
 }
 
+// The image to show for a driver: a custom driver uses the claiming Discord
+// user's avatar (null if unclaimed → monogram); a real driver uses its headshot.
+export function driverPhoto(o: {
+  isPlayer: boolean;
+  imageUrl: string | null;
+  claimedBy?: { avatarUrl: string } | null;
+}): string | null {
+  return o.isPlayer ? o.claimedBy?.avatarUrl ?? null : o.imageUrl;
+}
+
 // Countries selectable for a custom driver's nationality (ISO alpha-2 + name).
 export const COUNTRIES: { iso: string; name: string }[] = [
   { iso: "ar", name: "Argentina" },

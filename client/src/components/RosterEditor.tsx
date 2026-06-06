@@ -3,7 +3,7 @@ import { api, type CareerDetail, type ClaimUser, type Entrant, type Team } from 
 import Avatar from "./Avatar";
 import TeamLogo from "./TeamLogo";
 import { useAuth } from "../auth";
-import { COUNTRIES } from "../lib/ui";
+import { COUNTRIES, driverPhoto } from "../lib/ui";
 
 interface Row {
   name: string;
@@ -159,7 +159,8 @@ export default function RosterEditor({
                     name={r.name || r.code || "?"}
                     code={r.code || "?"}
                     teamColor={team.color}
-                    imageUrl={r.imageUrl}
+                    imageUrl={driverPhoto({ isPlayer: r.isPlayer, imageUrl: e.imageUrl, claimedBy: e.claimedBy })}
+                    useConvention={!r.isPlayer}
                     size={40}
                   />
                   <input
@@ -182,25 +183,17 @@ export default function RosterEditor({
                     onChange={(ev) => set(id, { number: Number(ev.target.value) })}
                   />
                   {r.isPlayer && (
-                    <>
-                      <input
-                        className="input w-full sm:flex-1 sm:min-w-[10rem]"
-                        placeholder="Photo URL (optional)"
-                        value={r.imageUrl ?? ""}
-                        onChange={(ev) => set(id, { imageUrl: ev.target.value || null })}
-                      />
-                      <select
-                        className="input w-full sm:w-44"
-                        value={r.nationality ?? "us"}
-                        onChange={(ev) => set(id, { nationality: ev.target.value })}
-                      >
-                        {COUNTRIES.map((c) => (
-                          <option key={c.iso} value={c.iso}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </>
+                    <select
+                      className="input w-full sm:w-44"
+                      value={r.nationality ?? "us"}
+                      onChange={(ev) => set(id, { nationality: ev.target.value })}
+                    >
+                      {COUNTRIES.map((c) => (
+                        <option key={c.iso} value={c.iso}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
                   )}
                   <label className="text-xs text-zinc-400 flex items-center gap-1.5 cursor-pointer select-none">
                     <input

@@ -8,6 +8,7 @@ interface Props {
   imageUrl?: string | null;
   height?: number;
   className?: string;
+  useConvention?: boolean;
 }
 
 // A full (non-circular) driver headshot, falling back to a monogram on error.
@@ -18,12 +19,14 @@ export default function DriverPortrait({
   imageUrl,
   height = 120,
   className = "",
+  useConvention = true,
 }: Props) {
-  const src = (imageUrl && imageUrl.trim()) || `/drivers/${code.toUpperCase()}.png`;
+  const explicit = imageUrl && imageUrl.trim() ? imageUrl.trim() : null;
+  const src = explicit || (useConvention ? `/drivers/${code.toUpperCase()}.png` : null);
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
 
-  if (failed) {
+  if (failed || !src) {
     return (
       <span className={className}>
         <Avatar name={name} code={code} teamColor={teamColor} imageUrl={null} size={height * 0.66} />

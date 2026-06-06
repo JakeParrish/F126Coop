@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type AwardKey, type Entrant, type Race } from "../api";
 import Avatar from "./Avatar";
+import { driverPhoto } from "../lib/ui";
 
 const AWARDS: { key: AwardKey; label: string; icon: string }[] = [
   { key: "driverOfDayId", label: "Driver of the Day", icon: "★" },
@@ -69,7 +70,8 @@ export default function RaceAwards({
                     name={sel.name}
                     code={sel.code}
                     teamColor={sel.team.color}
-                    imageUrl={sel.imageUrl}
+                    imageUrl={driverPhoto(sel)}
+                    useConvention={!sel.isPlayer}
                     size={34}
                   />
                   <span className="font-semibold text-sm">{sel.name}</span>

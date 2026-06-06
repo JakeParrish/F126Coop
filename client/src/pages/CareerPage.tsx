@@ -7,7 +7,7 @@ import TeamLogo from "../components/TeamLogo";
 import DriverPortrait from "../components/DriverPortrait";
 import RosterEditor from "../components/RosterEditor";
 import Flag from "../components/Flag";
-import { countryIso, driverKey, nationalityIso, raceDateRange } from "../lib/ui";
+import { countryIso, driverKey, driverPhoto, nationalityIso, raceDateRange } from "../lib/ui";
 import type { DriverStanding } from "../api";
 
 const TABS = ["calendar", "drivers", "constructors", "roster"] as const;
@@ -183,7 +183,14 @@ function Podium({
           </div>
           <div className="flex items-center gap-1.5 px-1.5 py-1.5 min-w-0">
             {p ? (
-              <Avatar name={p.name} code={p.code} teamColor={p.team.color} imageUrl={p.imageUrl} size={30} />
+              <Avatar
+                name={p.name}
+                code={p.code}
+                teamColor={p.team.color}
+                imageUrl={driverPhoto(p)}
+                useConvention={!p.isPlayer}
+                size={30}
+              />
             ) : (
               <span className="w-[30px] h-[30px] rounded-full bg-f1-line shrink-0" />
             )}
@@ -259,18 +266,15 @@ function DriverCard({ d, rank, slug }: { d: DriverStanding; rank: number; slug: 
           <div className="text-[11px] opacity-90 mt-0.5">{d.teamName}</div>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-2xl font-extrabold italic">{d.number}</span>
-            {nat ? (
-              <Flag iso={nat} className="h-4" />
-            ) : d.isPlayer ? (
-              <Avatar name={d.name} code={d.code} teamColor={color} imageUrl={d.imageUrl} size={20} />
-            ) : null}
+            {nat ? <Flag iso={nat} className="h-4" /> : null}
           </div>
         </div>
         <DriverPortrait
           name={d.name}
           code={d.code}
           teamColor={color}
-          imageUrl={d.imageUrl}
+          imageUrl={driverPhoto(d)}
+          useConvention={!d.isPlayer}
           height={132}
           className="self-end max-w-[48%]"
         />

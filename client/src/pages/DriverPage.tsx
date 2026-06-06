@@ -5,7 +5,7 @@ import { useAuth } from "../auth";
 import TeamLogo from "../components/TeamLogo";
 import DriverPortrait from "../components/DriverPortrait";
 import Flag from "../components/Flag";
-import { countryIso, driverKey, nationalityIso } from "../lib/ui";
+import { countryIso, driverKey, driverPhoto, nationalityIso } from "../lib/ui";
 
 export default function DriverPage() {
   const { slug, name: nameParam } = useParams();
@@ -91,7 +91,8 @@ export default function DriverPage() {
             name={entrant.name}
             code={entrant.code}
             teamColor={color}
-            imageUrl={entrant.imageUrl}
+            imageUrl={driverPhoto(entrant)}
+            useConvention={!entrant.isPlayer}
             height={210}
             className="self-end hidden sm:block"
           />

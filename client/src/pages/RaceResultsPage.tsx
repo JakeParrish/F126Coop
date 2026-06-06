@@ -6,7 +6,7 @@ import RaceAwards from "../components/RaceAwards";
 import TrackMap from "../components/TrackMap";
 import Flag from "../components/Flag";
 import Avatar from "../components/Avatar";
-import { countryIso } from "../lib/ui";
+import { countryIso, driverPhoto } from "../lib/ui";
 
 type Tab = "SPRINT" | "RACE" | "WEEKEND";
 
@@ -171,7 +171,8 @@ function WeekendResults({ race, entrants }: { race: Race; entrants: Entrant[] })
                     name={r.e.name}
                     code={r.e.code}
                     teamColor={r.e.team.color}
-                    imageUrl={r.e.imageUrl}
+                    imageUrl={driverPhoto(r.e)}
+                    useConvention={!r.e.isPlayer}
                     size={28}
                   />
                   <span className="font-medium">{r.e.name}</span>

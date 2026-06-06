@@ -193,7 +193,8 @@ export default function NewCareerPage() {
                       name={s.name || s.code || "?"}
                       code={s.code || "?"}
                       teamColor={team.color}
-                      imageUrl={s.imageUrl}
+                      imageUrl={s.isPlayer ? null : s.imageUrl}
+                      useConvention={!s.isPlayer}
                       size={40}
                     />
                     {s.isPlayer ? (
@@ -218,12 +219,6 @@ export default function NewCareerPage() {
                           type="number"
                           value={s.number}
                           onChange={(e) => update(i, { number: Number(e.target.value) })}
-                        />
-                        <input
-                          className="input w-full sm:flex-1 sm:min-w-[8rem]"
-                          placeholder="Photo URL (optional)"
-                          value={s.imageUrl ?? ""}
-                          onChange={(e) => update(i, { imageUrl: e.target.value || null })}
                         />
                         <select
                           className="input w-full sm:w-44"

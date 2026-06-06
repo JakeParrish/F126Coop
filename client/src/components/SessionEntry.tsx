@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, type Entrant, type Race, type Session, type ResultRowInput } from "../api";
 import Avatar from "./Avatar";
+import { driverPhoto } from "../lib/ui";
 
 const RACE_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 const SPRINT_POINTS = [8, 7, 6, 5, 4, 3, 2, 1];
@@ -175,7 +176,8 @@ export default function SessionEntry({
                     name={e.name}
                     code={e.code}
                     teamColor={e.team.color}
-                    imageUrl={e.imageUrl}
+                    imageUrl={driverPhoto(e)}
+                    useConvention={!e.isPlayer}
                     size={32}
                   />
                   <span className="font-medium">{e.name}</span>
