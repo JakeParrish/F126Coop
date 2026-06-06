@@ -4,18 +4,10 @@ Drop a PNG (transparent background works best) for each team here, named by the
 team's slug. They'll show automatically in standings, the roster, and elsewhere.
 If a file is missing, a colour badge is shown instead.
 
-Expected filenames:
+Expected filenames (`.avif`, `.png`, or `.webp` — update the extension in
+`client/src/components/TeamLogo.tsx` to match; currently `.avif`):
 
-- `mclaren.png`
-- `ferrari.png`
-- `mercedes.png`
-- `red-bull.png`
-- `williams.png`
-- `racing-bulls.png`
-- `aston-martin.png`
-- `haas.png`
-- `audi.png`
-- `alpine.png`
-- `cadillac.png`
+- `mclaren`, `ferrari`, `mercedes`, `red-bull`, `williams`, `racing-bulls`,
+  `aston-martin`, `haas`, `audi`, `alpine`, `cadillac`
 
 (Slug = team name lowercased, spaces → hyphens.)

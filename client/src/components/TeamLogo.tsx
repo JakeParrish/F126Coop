@@ -19,7 +19,7 @@ interface Props {
 
 // Shows a team logo from /teams/<slug>.png if present, else the colour badge.
 export default function TeamLogo({ name, color, size = 22, className = "" }: Props) {
-  const src = `/teams/${teamSlug(name)}.png`;
+  const src = `/teams/${teamSlug(name)}.avif`;
   const [failed, setFailed] = useState(false);
 
   useEffect(() => setFailed(false), [src]);
