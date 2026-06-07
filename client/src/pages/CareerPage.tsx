@@ -96,12 +96,6 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
             to={`/career/${slug}/race/${r.round}`}
             className="panel relative flex flex-col hover:border-f1-red/60 transition-colors overflow-hidden"
           >
-            {winner && (
-              <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
-                <TeamLogo name={winner.team.name} color={winner.team.color} size={150} />
-              </div>
-            )}
-
             <div className="relative z-10 flex flex-col flex-1">
               <div className="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
                 <span className="font-mono text-[11px] text-zinc-500 tracking-widest">
@@ -127,6 +121,14 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
                 <div className="text-[11px] text-zinc-500 uppercase tracking-wide mt-0.5">
                   {r.name}
                 </div>
+                {winner && (
+                  <TeamLogo
+                    name={winner.team.name}
+                    color={winner.team.color}
+                    size={22}
+                    className="mt-2"
+                  />
+                )}
               </div>
 
               <div className="px-4 py-3 mt-auto">
