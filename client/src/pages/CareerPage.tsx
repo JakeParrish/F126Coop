@@ -87,65 +87,75 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
         const hasSprint = r.isSprint && r.results.some((x) => x.session === "SPRINT");
         const racePodium = podiumOf(r, entrantById, "RACE");
         const sprintPodium = podiumOf(r, entrantById, "SPRINT");
+        // Winner drives the track colour + logo watermark once finalized.
+        const winner = racePodium[0] ?? sprintPodium[0];
+        const trackColor = winner ? winner.team.color : "#6b7280";
         return (
           <Link
             key={r.id}
             to={`/career/${slug}/race/${r.round}`}
-            className="panel flex flex-col hover:border-f1-red/60 transition-colors overflow-hidden"
+            className="panel relative flex flex-col hover:border-f1-red/60 transition-colors overflow-hidden"
           >
-            <div className="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
-              <span className="font-mono text-[11px] text-zinc-500 tracking-widest">
-                ROUND {r.round}
-              </span>
-              <span className="flex items-center gap-2">
-                {r.isSprint && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">
-                    SPRINT
-                  </span>
-                )}
-                <span className="text-[11px] text-zinc-400 font-medium whitespace-nowrap">
-                  🏁 {raceDateRange(r.date)}
+            {winner && (
+              <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
+                <TeamLogo name={winner.team.name} color={winner.team.color} size={150} />
+              </div>
+            )}
+
+            <div className="relative z-10 flex flex-col flex-1">
+              <div className="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
+                <span className="font-mono text-[11px] text-zinc-500 tracking-widest">
+                  ROUND {r.round}
                 </span>
-              </span>
-            </div>
-
-            <div className="px-4">
-              <div className="text-xl font-extrabold flex items-center gap-2 leading-tight">
-                <Flag iso={countryIso(r.country)} className="h-5" />
-                {r.country}
-              </div>
-              <div className="text-[11px] text-zinc-500 uppercase tracking-wide mt-0.5">
-                {r.name}
-              </div>
-            </div>
-
-            <div className="px-4 py-3 mt-auto">
-              {hasSprint || hasRace ? (
-                <div className="space-y-2">
-                  {hasSprint && (
-                    <div>
-                      <div className="text-[9px] font-bold tracking-wide text-yellow-400 mb-1">
-                        SPRINT
-                      </div>
-                      <Podium podium={sprintPodium} race={r} session="SPRINT" />
-                    </div>
+                <span className="flex items-center gap-2">
+                  {r.isSprint && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/40">
+                      SPRINT
+                    </span>
                   )}
-                  {hasRace && (
-                    <div>
-                      {r.isSprint && (
-                        <div className="text-[9px] font-bold tracking-wide text-zinc-500 mb-1">
-                          GRAND PRIX
+                  <span className="text-[11px] text-zinc-400 font-medium whitespace-nowrap">
+                    🏁 {raceDateRange(r.date)}
+                  </span>
+                </span>
+              </div>
+
+              <div className="px-4">
+                <div className="text-xl font-extrabold flex items-center gap-2 leading-tight">
+                  <Flag iso={countryIso(r.country)} className="h-5" />
+                  {r.country}
+                </div>
+                <div className="text-[11px] text-zinc-500 uppercase tracking-wide mt-0.5">
+                  {r.name}
+                </div>
+              </div>
+
+              <div className="px-4 py-3 mt-auto">
+                <div className="h-20 flex items-center justify-center mb-2">
+                  <TrackMap round={r.round} color={trackColor} strokeWidth={20} className="h-full w-full" />
+                </div>
+                {(hasSprint || hasRace) && (
+                  <div className="space-y-2">
+                    {hasSprint && (
+                      <div>
+                        <div className="text-[9px] font-bold tracking-wide text-yellow-400 mb-1">
+                          SPRINT
                         </div>
-                      )}
-                      <Podium podium={racePodium} race={r} session="RACE" />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="h-24 flex items-center justify-center">
-                  <TrackMap round={r.round} color="#6b7280" strokeWidth={22} className="h-full w-full" />
-                </div>
-              )}
+                        <Podium podium={sprintPodium} race={r} session="SPRINT" />
+                      </div>
+                    )}
+                    {hasRace && (
+                      <div>
+                        {r.isSprint && (
+                          <div className="text-[9px] font-bold tracking-wide text-zinc-500 mb-1">
+                            GRAND PRIX
+                          </div>
+                        )}
+                        <Podium podium={racePodium} race={r} session="RACE" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </Link>
         );
