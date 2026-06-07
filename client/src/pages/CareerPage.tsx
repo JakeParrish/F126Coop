@@ -121,17 +121,17 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
                 <div className="text-[11px] text-zinc-500 uppercase tracking-wide mt-0.5">
                   {r.name}
                 </div>
-                {winner && (
-                  <TeamLogo
-                    name={winner.team.name}
-                    color={winner.team.color}
-                    size={22}
-                    className="mt-2"
-                  />
-                )}
               </div>
 
               <div className="px-4 py-3 mt-auto">
+                {winner && (
+                  <div className="mb-2">
+                    <div className="text-[9px] font-bold tracking-wide text-zinc-500 mb-1">
+                      WINNING CONSTRUCTOR
+                    </div>
+                    <TeamLogo name={winner.team.name} color={winner.team.color} size={22} />
+                  </div>
+                )}
                 <div className="h-20 flex items-center justify-center mb-2">
                   <TrackMap round={r.round} color={trackColor} strokeWidth={20} className="h-full w-full" />
                 </div>
