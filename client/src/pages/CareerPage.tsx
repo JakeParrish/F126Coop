@@ -125,7 +125,7 @@ function Calendar({ career }: { career: CareerDetail["career"] }) {
 
               <div className="px-4 py-3 mt-auto">
                 {winner && (
-                  <div className="mb-2 flex flex-col items-center">
+                  <div className="mb-2">
                     <div className="text-[9px] font-bold tracking-wide text-zinc-500 mb-1">
                       WINNING CONSTRUCTOR
                     </div>
